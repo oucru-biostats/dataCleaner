@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1548216758056.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3278293826",
+    "id" : "DE1EFD33",
+    "lastKnownWriteTime" : 1548299305,
+    "last_content_update" : 1548299305166,
+    "path" : "C:/Users/trinhdhk/OneDrive/Works/OUCRU/shinyProjects/dataCleaner/ui.R",
+    "project_path" : "ui.R",
+    "properties" : {
+        "cursorPosition" : "68,88",
+        "scrollLine" : "38"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

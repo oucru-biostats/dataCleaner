@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1548218963383.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "13E29B1B",
+    "lastKnownWriteTime" : 1545193341,
+    "last_content_update" : 1545193341,
+    "path" : "C:/Users/trinhdhk/OneDrive/Works/OUCRU/shinyProjects/dataCleaner/dev-includes/set_randText.R",
+    "project_path" : "dev-includes/set_randText.R",
+    "properties" : {
+        "cursorPosition" : "2,2",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
