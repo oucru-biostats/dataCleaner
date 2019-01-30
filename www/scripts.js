@@ -47,7 +47,7 @@ SimpleBar_init = (elList) => {
 }
 
 responsiveText = function(){
-    cssVar.grandTabTop = ($('#dataset').offset().top + $('#dataset').outerHeight()) + 'px';
+    cssVar.grandTabTop = ($('#dataset').position().top + $('#dataset').outerHeight()) + 'px';
     if ($(window).width() < 768){
         // $('#methodsNav').addClass('smallMedia', 300);
         // $('#methodsToggle').addClass('smallMedia', 300);
@@ -79,6 +79,24 @@ _DT_callback = function(dt) {
     SimpleBar_init('#dataset .dataTables_scrollBody');
     set_inputDT(dt.api().table()); 
     tagParse(dt.api().table());
+
+    /* Send AJAX to R */
+    $('#dataset .dataTables_scrollHeadInner thead th').contextmenu(function(e){
+        e.preventDefault();
+        $('#dataset .dataTables_scrollHeadInner thead th').css('color', '#000');
+        $(e.currentTarget).css('color','var(--color-active)');
+        console.log($(this).html());
+        Shiny.onInputChange('key', e.currentTarget.innerHTML);
+    });
+
+    $('#dataset .dataTables_scrollHeadInner thead th').on('taphold', function(e){
+        e.preventDefault();
+        $('#dataset .dataTables_scrollHeadInner thead th').css('color', '#000');
+        $(e.currentTarget).css('color','var(--color-active)');
+        console.log($(this).html());
+        Shiny.onInputChange('key', e.currentTarget.innerHTML);
+    });
+
     responsiveText();
 }
 

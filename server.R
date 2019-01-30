@@ -210,7 +210,7 @@ shinyServer(function(input, output, session) {
         tags$script(src = "etc/methods-nav.js"),
         navlistPanel(
           "Methods list",
-          tabPanel("Missing Data", uiOutput('msd_options'), uiOutput('msd_instr'), uiOutput('msd_log')),
+          tabPanel("Missing Data", uiOutput('msd_all')),
           tabPanel("Numerical Outliers", uiOutput('outl_options'), uiOutput('outl_instr'), uiOutput('outl_log')),
           tabPanel("Categorical Loners", uiOutput('lnr_options'), uiOutput('lnr_instr'), uiOutput('lnr_log')),
           tabPanel("Binary", uiOutput('bin_options'), uiOutput('bin_instr'), uiOutput('bin_log')),
@@ -228,7 +228,6 @@ shinyServer(function(input, output, session) {
       div(
         div(
           materialSwitch(inputId = "msd_enabled", 
-                         # label = "Enabled", 
                          status = "success",
                          value = TRUE,
                          right = TRUE),
@@ -237,7 +236,6 @@ shinyServer(function(input, output, session) {
         ),
         div(
           materialSwitch(inputId = "outl_enabled", 
-                         # label = "Enabled", 
                          status = "success",
                          value = TRUE,
                          right = TRUE),
@@ -246,7 +244,6 @@ shinyServer(function(input, output, session) {
         ),
         div(
           materialSwitch(inputId = "lnr_enabled", 
-                         # label = "Enabled", 
                          status = "success",
                          value = TRUE, 
                          right = TRUE),
@@ -255,7 +252,6 @@ shinyServer(function(input, output, session) {
         ),
         div(
           materialSwitch(inputId = "bin_enabled", 
-                         # label = "Enabled", 
                          status = "success",
                          value = TRUE,
                          right = TRUE),
@@ -264,7 +260,6 @@ shinyServer(function(input, output, session) {
         ),
         div(
           materialSwitch(inputId = "wsp_enabled", 
-                         # label = "Enabled", 
                          status = "success",
                          value = TRUE,
                          right = TRUE),
@@ -273,7 +268,6 @@ shinyServer(function(input, output, session) {
         ),
         div(
           materialSwitch(inputId = "spl_enabled", 
-                         # label = "Enabled", 
                          status = "success",
                          value = TRUE,
                          right = TRUE),
@@ -281,17 +275,59 @@ shinyServer(function(input, output, session) {
           class = 'opt-holder'
         ),
         div(
-          materialSwitch(inputId = "mkrp_enabled", 
-                         # label = "Enabled", 
+          materialSwitch(inputId = "did_enabled", 
                          status = "success",
                          value = FALSE,
                          right = TRUE),
-          id = 'mkrp-holder',
+          id = 'did-holder',
           class = 'opt-holder'
         ),
         id = 'methods-toggle-holder'
       )
   )
+  
+  ## Methods details #####
+  
+  ### Missing data ####
+  output$msd_all <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('msd_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('msd_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('msd_log'),
+             class = 'log-holder')
+    )
+  )
+  
+  output$msd_options <- renderUI(div(awesomeCheckboxGroup(inputId = "msd_subset", 
+                                                          label = "Select columns to check", 
+                                                          choices = data.cols(), 
+                                                          selected = data.cols()[!data.cols() %in% intelliChoice(isolate(dataset$data.loaded), "dateTime")], 
+                                                          inline = TRUE, status = "info"),
+                                     fluidRow(column(6,
+                                                     materialSwitch(inputId = "msd_remove", 
+                                                                    label = "Auto Remove Missing Data", 
+                                                                    status = "danger",
+                                                                    value = FALSE,
+                                                                    right = TRUE)
+                                                     ),
+                                     column(6,
+                                            materialSwitch(inputId = "msd_toNA", 
+                                                           label = "Auto replace suspect with NA", 
+                                                           status = "danger",
+                                                           value = FALSE,
+                                                           right = TRUE)
+                                                     )
+                                     ),
+                                     id = 'msd-args-holder'
+                                    )
+                                 )
+  output$msd_instr <- renderUI(HTML(instr$msd_instruction))
+  output$msd_log <- renderUI(div('lorem ipsum'))
   
   #EOF  
   

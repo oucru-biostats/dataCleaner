@@ -863,11 +863,11 @@ body #foreground #text .lds-roller {
 #methodsNav {
   cursor: default;
   height: calc(100vh - var(--grandTabTop) - 1px);
-  transition: height 1s ease;
-  -ms-transition: height 1s ease;
-  -moz-transition: height 1s ease;
-  -webkit-transition: height 1s ease;
-  -o-transition: height 1s ease;
+  transition: height ease 0.3s;
+  -moz-transition: height ease 0.3s;
+  -webkit-transition: height ease 0.3s;
+  -ms-transition: height ease 0.3s;
+  -o-transition: height ease 0.3s;
 }
 
 #methodsNav li a {
@@ -887,27 +887,66 @@ body #foreground #text .lds-roller {
 }
 
 #methodsNav .col-sm-9 {
-  height: calc(100vh - var(--grandTabTop) - 1px);
-  overflow-y: auto;
   overflow-x: hidden;
 }
 
-#methodsNav .navbar-brand {
-  display: none;
+#methodsNav .col-sm-9 .tab-content .material-switch {
+  white-space: nowrap;
+  padding: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-#methodsNav .tab-pane {
-  max-height: 300px;
+#methodsNav .col-sm-9 .tab-content .tab-pane {
+  height: calc(100vh - var(--grandTabTop) - 1px);
   overflow-x: hidden !important;
   margin-bottom: 20px;
   padding-right: 0;
   padding-left: 10px;
 }
 
-#methodsNav .tab-content .material-switch {
-  white-space: nowrap;
-  /* overflow: hidden; */
-  text-overflow: ellipsis;
+#methodsNav .col-sm-9 .tab-content .tab-pane .row {
+  padding-top: 0;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder {
+  position: relative;
+}
+
+@media only screen and (max-width: 500px) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder::before {
+    content: '';
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    z-index: 14;
+    top: 10px;
+    left: 0px;
+    background-color: red;
+  }
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder {
+  width: 0px;
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  overflow-x: hidden;
+  z-index: 13;
+  background-color: blue;
+  transition: all 0.3s ease;
+  -ms-transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  -webkit-transition: all 0.3s ease;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder div {
+  width: 70vw;
+}
+
+#methodsNav .navbar-brand {
+  display: none;
 }
 
 #methodsNav .well {
@@ -931,6 +970,7 @@ body #foreground #text .lds-roller {
     padding: 0;
   }
   #methodsNav .col-sm-3.well ul.nav-pills {
+    height: calc(100vh - var(--grandTabTop) - 1px);
     width: 90vw;
     background-color: var(--color-background);
     -webkit-box-shadow: 1px 0px -2px var(--color-inactive);
