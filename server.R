@@ -83,11 +83,13 @@ shinyServer(function(input, output, session) {
   
   data.cols <- reactiveVal()
   cols.state <- reactiveVal()
+  data.keys <- reactiveVal()
   
   observe({
     req(dataset$data.loaded)
     data.cols(colnames(dataset$data.loaded))
     cols.state(data.cols())
+    data.keys(intelliKey(dataset$data.loaded, showAll = TRUE))
   })
   
   output$dataset <- renderDT(
@@ -211,12 +213,12 @@ shinyServer(function(input, output, session) {
         navlistPanel(
           "Methods list",
           tabPanel("Missing Data", uiOutput('msd_all')),
+          tabPanel("Duplicate IDs", uiOutput('did_all')),
           tabPanel("Numerical Outliers", uiOutput('outl_all')),
           tabPanel("Categorical Loners", uiOutput('lnr_all')),
           tabPanel("Binary", uiOutput('bin_all')),
           tabPanel("Whitespaces", uiOutput('wsp_all')),
-          tabPanel("Spellings Issues", uiOutput('spl_all')),
-          tabPanel("Duplicate IDs", uiOutput('did_all'))
+          tabPanel("Spellings Issues", uiOutput('spl_all'))
         )
       )
   )
@@ -229,15 +231,20 @@ shinyServer(function(input, output, session) {
         div(
           materialSwitch(inputId = "msd_enabled", 
                          status = "success",
-                         value = TRUE,
                          right = TRUE),
           id = 'msd-holder',
           class = 'opt-holder'
         ),
         div(
+          materialSwitch(inputId = "did_enabled", 
+                         status = "success",
+                         right = TRUE),
+          id = 'did-holder',
+          class = 'opt-holder'
+        ),
+        div(
           materialSwitch(inputId = "outl_enabled", 
                          status = "success",
-                         value = TRUE,
                          right = TRUE),
           id = 'outl-holder',
           class = 'opt-holder'
@@ -245,7 +252,6 @@ shinyServer(function(input, output, session) {
         div(
           materialSwitch(inputId = "lnr_enabled", 
                          status = "success",
-                         value = TRUE, 
                          right = TRUE),
           id = 'lnr-holder',
           class = 'opt-holder'
@@ -253,7 +259,6 @@ shinyServer(function(input, output, session) {
         div(
           materialSwitch(inputId = "bin_enabled", 
                          status = "success",
-                         value = TRUE,
                          right = TRUE),
           id = 'bin-holder',
           class = 'opt-holder'
@@ -261,7 +266,6 @@ shinyServer(function(input, output, session) {
         div(
           materialSwitch(inputId = "wsp_enabled", 
                          status = "success",
-                         value = TRUE,
                          right = TRUE),
           id = 'wsp-holder',
           class = 'opt-holder'
@@ -269,17 +273,8 @@ shinyServer(function(input, output, session) {
         div(
           materialSwitch(inputId = "spl_enabled", 
                          status = "success",
-                         value = TRUE,
                          right = TRUE),
           id = 'spl-holder',
-          class = 'opt-holder'
-        ),
-        div(
-          materialSwitch(inputId = "did_enabled", 
-                         status = "success",
-                         value = FALSE,
-                         right = TRUE),
-          id = 'did-holder',
           class = 'opt-holder'
         ),
         id = 'methods-toggle-holder'
@@ -364,12 +359,14 @@ shinyServer(function(input, output, session) {
           column(6, 
                  textInput(inputId = 'outl_fnLower',
                            label = 'Lower Bound Function',
-                           width = '100%')
+                           width = '100%',
+                           value = getOutlValue(type = 'upper', model = isolate(input$outl_model)))
           ),
           column(6, 
                  textInput(inputId = 'outl_fnUpper',
                            label = 'Upper Bound Function',
-                           width = '100%')
+                           width = '100%',
+                           value = getOutlValue(type = 'lower', model = isolate(input$outl_model)))
                  )
         ),
         conditionalPanel(
@@ -506,6 +503,15 @@ shinyServer(function(input, output, session) {
                                selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), "loners", accept.dateTime = isolate(input$lnr_dateAsFactor))))])
   })
   
+  observeEvent(input$lnr_subset, {
+    req(dataset$data.loaded)
+    subset <- isolate(input$lnr_subset)
+    if (!is.null(subset)) if (any(intelliType(dataset$data.loaded[subset]) == 'dateTime'))
+      updateMaterialSwitch(session = session,
+                           inputId = 'lnr_dateAsFactor',
+                           value = TRUE)
+  })
+  
   observe({
       updateMaterialSwitch(session = session,
                            inputId = 'lnr_enabled',
@@ -599,14 +605,14 @@ shinyServer(function(input, output, session) {
             label = "Leading & trailing spaces", 
             status = "info",
             inline = TRUE,
-            value = FALSE,
+            value = TRUE,
             right = TRUE),
           materialSwitch(
             inputId = "wsp_doubleWSP", 
             label = "Double whitespaces", 
             status = "info",
             inline = TRUE,
-            value = FALSE,
+            value = TRUE,
             right = TRUE),
           id = 'wsp-args-holder'
       )
@@ -677,6 +683,55 @@ shinyServer(function(input, output, session) {
   output$spl_instr <- renderUI(HTML(instr$spl_instruction))
   output$spl_log <- renderUI(div('lorem ipsum'))
   
+  ### Duplicated observation ####
+  
+  output$did_all <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('did_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('did_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('did_log'),
+             class = 'log-holder')
+    )
+  )
+  
+  output$did_options <- 
+    renderUI(
+      if (length(data.keys())) div(
+        pickerInput(inputId = 'did_key',
+                    label = "Select ONE variable for ID",
+                    choices = data.keys()
+                    ),
+        awesomeCheckboxGroup(inputId = "did_subset", 
+                             label = "Select variables to check", 
+                             choices = isolate(data.cols()[data.cols() != input$did_key]), 
+                             selected = isolate(data.cols()[data.cols() != input$did_key]), 
+                             inline = TRUE, status = "info"),
+        id = 'spl-args-holder'
+      ) else div(p('There is no variables in your data that can play the role as identification key.'))
+    )
+  
+  observe({
+    updateMaterialSwitch(session = session,
+                         inputId = 'did_enabled',
+                         value = if (length(input$did_subset) & !is.null(data.keys())) TRUE else FALSE)
+  })
+  
+  observeEvent(input$did_key, {
+    updateAwesomeCheckboxGroup(session = session,
+                               inputId = 'did_subset',
+                               choices = isolate(data.cols()[data.cols() != input$did_key]),
+                               selected = isolate(data.cols()[data.cols() != input$did_key]),
+                               inline = TRUE, status = "info")
+  })
+  
+  output$did_instr <- renderUI(HTML(instr$spl_instruction))
+  output$did_log <- renderUI(div('lorem ipsum'))
+  
   #EOF  
   
   set_always_on(c('dataOptions',
@@ -685,7 +740,8 @@ shinyServer(function(input, output, session) {
                   'lnr_all', 'lnr_options', 'lnr_log', 'lnr_instr',
                   'bin_all', 'bin_options', 'bin_log', 'bin_instr',
                   'wsp_all', 'wsp_options', 'wsp_log', 'wsp_instr',
-                  'spl_all', 'spl_options', 'spl_log', 'spl_instr'
+                  'spl_all', 'spl_options', 'spl_log', 'spl_instr',
+                  'did_all', 'did_options', 'did_log', 'did_instr'
   ),
   output = output)
 })

@@ -887,6 +887,10 @@ body #foreground #text .lds-roller {
   white-space: nowrap;
 }
 
+#methodsNav ul.dropdown-menu.inner li a {
+  padding-left: 15px;
+}
+
 #methodsNav .col-sm-9 {
   overflow-x: hidden;
 }

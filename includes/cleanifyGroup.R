@@ -481,15 +481,17 @@ intelliKey <- function(df, threshold = 1, showAll = FALSE){
   are.unique <- sapply(are.Keys, function(is.Key) return(is.Key$is.unique))
   deltaL <- sapply(are.Keys, function(is.Key) return(is.Key$deltaL))
   
-  if (showAll) {
-    if (any(deltaL[are.unique] > 0)) 
-      warning(paste(vars[are.unique][deltaL[are.unique] > 0], 'is treated as a key but has', deltaL[are.unique][deltaL[are.unique] > 0], 'repeated observations \n'))
-    return(vars[are.unique]) 
-  } else {
-    if (deltaL[are.unique][1] > 0)
-      warning(paste(vars[are.unique][1], 'is treated as a key but has', deltaL[are.unique][1], 'repeated observations \n'))  
-    return(vars[are.unique][[1]])
-  }
+  if (any(are.unique)){
+    if (showAll) {
+      if (any(deltaL[are.unique] > 0)) 
+        warning(paste(vars[are.unique][deltaL[are.unique] > 0], 'is treated as a key but has', deltaL[are.unique][deltaL[are.unique] > 0], 'repeated observations \n'))
+      return(vars[are.unique]) 
+    } else {
+      if (deltaL[are.unique][1] > 0)
+        warning(paste(vars[are.unique][1], 'is treated as a key but has', deltaL[are.unique][1], 'repeated observations \n'))  
+      return(vars[are.unique][[1]])
+    }
+  } else return(NULL)
 }
 
 intelliType <- function(df){
@@ -521,7 +523,7 @@ intelliType <- function(df){
   if (ncol(df) > 1) {
     names(res) <- vars
     keyName <- intelliKey(df)
-    res[[keyName]] <- append(res[[keyName]], 'key', after = 0)
+    if (length(keyName)) res[[keyName]] <- append(res[[keyName]], 'key', after = 0)
   }
   
   if (length(res) < 2) res <- unlist(res)

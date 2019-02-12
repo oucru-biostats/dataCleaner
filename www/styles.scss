@@ -870,6 +870,14 @@ body{
         }
     }
 
+    ul.dropdown-menu.inner {
+        li{
+            a{
+                padding-left: 15px;
+            }
+        }
+    }
+
     .col-sm-9{
         overflow-x: hidden;
         .tab-content{
