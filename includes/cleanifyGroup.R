@@ -529,7 +529,7 @@ intelliType <- function(df){
   return(res)
 }
 
-intelliIsCompatible <- function(v = NULL, v.type = NULL, test = c('whitespaces', 'doubleWSP', 'outliers', 'loners', 'binary', 'missing', 'spelling')){
+intelliIsCompatible <- function(v = NULL, v.type = NULL, test = c('whitespaces', 'doubleWSP', 'outliers', 'loners', 'binary', 'missing', 'spelling'), accept.dateTime = FALSE){
   test <- match.arg(test)
   if (is.null(v.type)) v.type <- c(intelliType(v), 'key'[intelliIsKey(v)$is.unique])
   if (is.null(v.type) && is.null(v)) stop('Either v or v.type should be defined.')
@@ -538,7 +538,7 @@ intelliIsCompatible <- function(v = NULL, v.type = NULL, test = c('whitespaces',
                           'whitespaces' = TRUE,
                           'doubleWSP' =  TRUE,
                           'outliers' = 'numeric' %in% v.type,
-                          'loners' = !('dateTime' %in% v.type) & !('key' %in% v.type),
+                          'loners' = (!('dateTime' %in% v.type) | accept.dateTime) & !('key' %in% v.type),
                           'binary' = !'key' %in% v.type,
                           'missing' = TRUE,
                           'spelling' = 'lang' %in% v.type
@@ -556,7 +556,7 @@ intelliCompatible <- function(data, tests = c('whitespaces', 'doubleWSP', 'outli
   if (!is.null(vars)){
     out <- sapply(vars, function(var) {
       is.compatible <- sapply(tests, function(test) {
-        intelliIsCompatible(v = data[var], test = test) | if (test == 'loners') accept.dateTime else FALSE
+        intelliIsCompatible(v = data[[var]], test = test, accept.dateTime = accept.dateTime) 
       }, USE.NAMES = if(length(tests)<2) FALSE else TRUE)
     })
   }

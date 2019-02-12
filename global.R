@@ -15,6 +15,8 @@ source(file = 'includes//cleanifyGroup.R', local = TRUE)
 source(file = 'includes//text_parse.R', local = TRUE)
 source(file = 'includes//write_meta.R', local = TRUE)
 source(file = 'includes//intelliChoice.R', local = TRUE)
+source(file = 'includes//outlierFn.R', local = TRUE)
+source(file = 'includes//set_always_on.R', local = TRUE)
 
 nav_title <- jsonlite::read_json('meta/navTitle.json', simplifyVector = TRUE)
 instr <- jsonlite::read_json('meta/instr.json', simplifyVector = TRUE)

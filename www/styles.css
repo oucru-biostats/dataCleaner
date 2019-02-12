@@ -62,6 +62,7 @@
   --barLeft: 0;
   --barRight: auto;
   --color-primary:rgb(66, 66, 66);
+  --color-primary-transparent:rgb(66, 66, 66, 0.5);
   --color-background: #f3f3f3;
   --color-background-transparent: #f3f3f3b7;
   --color-shadow: rgb(117, 117, 117);
@@ -196,7 +197,7 @@ body {
   -ms-transition: all 0.3s ease;
   -moz-transition: all 0.3s ease;
   -webkit-transition: all 0.3s ease;
-  min-width: 200px;
+  min-width: 300px;
   background: var(--color-background);
 }
 
@@ -862,7 +863,7 @@ body #foreground #text .lds-roller {
 
 #methodsNav {
   cursor: default;
-  height: calc(100vh - var(--grandTabTop) - 1px);
+  height: calc(97vh - var(--grandTabTop) - 1px);
   transition: height ease 0.3s;
   -moz-transition: height ease 0.3s;
   -webkit-transition: height ease 0.3s;
@@ -898,31 +899,67 @@ body #foreground #text .lds-roller {
 }
 
 #methodsNav .col-sm-9 .tab-content .tab-pane {
-  height: calc(100vh - var(--grandTabTop) - 1px);
+  height: calc(100vh - var(--grandTabTop) - 1px - 3vh);
+  min-height: 304px;
   overflow-x: hidden !important;
-  margin-bottom: 20px;
   padding-right: 0;
-  padding-left: 10px;
+  padding-left: 15px;
 }
 
 #methodsNav .col-sm-9 .tab-content .tab-pane .row {
-  padding-top: 0;
+  padding-top: 3px;
 }
 
 #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder {
   position: relative;
 }
 
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row {
+  margin-bottom: 0;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-4 .form-group.shiny-input-container > div {
+  display: block !important;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:first-child {
+  padding-left: 0;
+  padding-right: 7.5px;
+}
+
 @media only screen and (max-width: 500px) {
-  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder::before {
-    content: '';
-    width: 40px;
-    height: 40px;
-    position: absolute;
-    z-index: 14;
-    top: 10px;
-    left: 0px;
-    background-color: red;
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:first-child {
+    padding: 0;
+  }
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:last-child {
+  padding-left: 7.5px;
+  padding-right: 0;
+}
+
+@media only screen and (max-width: 500px) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:last-child {
+    padding: 0;
+  }
+}
+
+@media only screen and (max-width: 500px) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6 {
+    width: 100%;
+  }
+}
+
+@media only screen and (min-width: 501px) and (max-width: 768px) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6 {
+    float: left;
+    width: 50%;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder {
+    padding-left: 24px;
   }
 }
 
@@ -943,6 +980,12 @@ body #foreground #text .lds-roller {
 
 #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder div {
   width: 70vw;
+}
+
+@media only screen and (max-width: 500px) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane {
+    height: 40vh;
+  }
 }
 
 #methodsNav .navbar-brand {
@@ -970,8 +1013,8 @@ body #foreground #text .lds-roller {
     padding: 0;
   }
   #methodsNav .col-sm-3.well ul.nav-pills {
-    height: calc(100vh - var(--grandTabTop) - 1px);
-    width: 90vw;
+    height: var(--contentHeight);
+    width: 100vw;
     background-color: var(--color-background);
     -webkit-box-shadow: 1px 0px -2px var(--color-inactive);
             box-shadow: 1px 0px -2px var(--color-inactive);
@@ -983,12 +1026,32 @@ body #foreground #text .lds-roller {
   }
   #methodsNav .col-sm-3.well ul.nav-pills > li.active a {
     background-color: unset;
-    color: #337ab7;
+    color: var(--color-inactive);
     position: relative;
   }
   #methodsNav .col-sm-3.well ul.nav-pills > li a {
     padding-left: 10vw;
+    color: var(--color-inactive);
+    position: relative;
   }
+  #methodsNav .col-sm-3.well ul.nav-pills.collapsed {
+    margin-left: -90vw;
+  }
+}
+
+@media only screen and (max-width: 500px) and (max-width: 500px) {
+  #methodsNav .col-sm-3.well ul.nav-pills.collapsed li.active a::after {
+    content: url("img/left-arrow.svg");
+    width: 24px;
+    position: absolute;
+    padding: 0;
+    z-index: 14;
+    top: 0;
+    right: 12px;
+  }
+}
+
+@media only screen and (max-width: 500px) {
   #methodsNav .col-sm-9 {
     width: 100vw;
     float: right;
@@ -1004,24 +1067,42 @@ body #foreground #text .lds-roller {
     z-index: 12;
   }
   #methodsNav .col-sm-3.well ul.nav-pills {
-    background-color: var(--color-background);
-    -webkit-box-shadow: 1px 0px -2px var(--color-inactive);
-            box-shadow: 1px 0px -2px var(--color-inactive);
+    background-color: #fff;
     transition: all 0.3s ease;
     -ms-transition: all 0.3s ease;
     -moz-transition: all 0.3s ease;
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
-    position: -webkit-sticky;
     position: sticky;
+    position: -webkit-sticky;
     top: 55px;
     width: 240px;
+    -o-border-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 1%, var(--color-primary-transparent) 49%, rgba(0, 0, 0, 0) 100%) 1 100%;
+       border-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0, 0, 0, 0)), color-stop(1%, rgba(0, 0, 0, 0)), color-stop(49%, var(--color-primary-transparent)), to(rgba(0, 0, 0, 0))) 1 100%;
+       border-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 1%, var(--color-primary-transparent) 49%, rgba(0, 0, 0, 0) 100%) 1 100%;
+    border-width: 0 1px 0 0;
+    border-style: solid;
+    border-radius: 0 4px 4px 0;
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+  }
+  @supports ((-webkit-backdrop-filter: blur(5px)) or (backdrop-filter: blur(5px))) or (-webkit-backdrop-filter: blur(5px)) {
+    #methodsNav .col-sm-3.well ul.nav-pills {
+      background-color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+    }
   }
   #methodsNav .col-sm-3.well ul.nav-pills li a {
     margin-left: -5px;
     padding-left: 80px;
   }
-  #methodsNav .col-sm-3.well ul.nav-pills li.active a.collapsed::after {
+  #methodsNav .col-sm-3.well ul.nav-pills.collapsed {
+    background-color: var(--color-background);
+    margin-left: -200px;
+    border-style: none;
+  }
+  #methodsNav .col-sm-3.well ul.nav-pills.collapsed li.active a::after {
     content: url("img/hamburger.svg");
     position: absolute;
     top: 11px;
@@ -1031,6 +1112,9 @@ body #foreground #text .lds-roller {
     float: right;
     padding-left: 10px;
     width: calc(100vw - 20px);
+  }
+  #methodsNav .col-sm-9 .row {
+    margin-bottom: 0;
   }
 }
 
@@ -1054,7 +1138,7 @@ body #foreground #text .lds-roller {
 
 .container-fluid > .tab-content div.col-sm-1.width0 #methodsToggle {
   position: relative;
-  top: calc(3vh + 3px);
+  top: calc(1.5vh + 1.5px);
   left: 20px;
   width: 0px;
   z-index: 13;
@@ -1065,12 +1149,6 @@ body #foreground #text .lds-roller {
   -o-transition: all 0.3s ease;
 }
 
-.container-fluid > .tab-content div.col-sm-1.width0 #methodsToggle.collapsed {
-  height: 0px;
-  width: 100px;
-  overflow: hidden;
-}
-
 .container-fluid > .tab-content div.col-sm-1.width0 #methodsToggle .opt-holder {
   margin-top: 10px;
   margin-bottom: 22px;
@@ -1079,6 +1157,15 @@ body #foreground #text .lds-roller {
 @media only screen and (max-width: 500px) {
   .container-fluid > .tab-content div.col-sm-1.width0 #methodsToggle {
     left: 75vw;
+  }
+  .container-fluid > .tab-content div.col-sm-1.width0 #methodsToggle.collapsed {
+    margin-left: -90vw;
+  }
+}
+
+@media only screen and (min-width: 501px) and (max-width: 767px) {
+  .container-fluid > .tab-content div.col-sm-1.width0 #methodsToggle.collapsed {
+    margin-left: -200px;
   }
 }
 
@@ -1091,8 +1178,19 @@ body #foreground #text .lds-roller {
 .container-fluid > .tab-content div.grand-tab-panel .row {
   margin-right: 0;
   margin-left: 0;
-  padding-top: 3vh;
-  padding-bottom: 3vh;
+  padding-top: 1.5vh;
+}
+
+@media only screen and (max-width: 500px) {
+  .container-fluid > .tab-content div.grand-tab-panel .row {
+    margin-bottom: 50px;
+  }
+}
+
+@media only screen and (min-width: 501px) and (max-width: 767px) {
+  .container-fluid > .tab-content div.grand-tab-panel .row {
+    margin-bottom: 20px;
+  }
 }
 
 #overlay {

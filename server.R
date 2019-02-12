@@ -211,12 +211,12 @@ shinyServer(function(input, output, session) {
         navlistPanel(
           "Methods list",
           tabPanel("Missing Data", uiOutput('msd_all')),
-          tabPanel("Numerical Outliers", uiOutput('outl_options'), uiOutput('outl_instr'), uiOutput('outl_log')),
-          tabPanel("Categorical Loners", uiOutput('lnr_options'), uiOutput('lnr_instr'), uiOutput('lnr_log')),
-          tabPanel("Binary", uiOutput('bin_options'), uiOutput('bin_instr'), uiOutput('bin_log')),
-          tabPanel("Whitespaces", uiOutput('wsp_options'), uiOutput('wsp_instr'), uiOutput('wsp_log')),
-          tabPanel("Spellings Issues", uiOutput('spl_options'), uiOutput('spl_instr'), uiOutput('spl_log')),
-          tabPanel("Duplicate IDs", uiOutput('did_options'), uiOutput('did_instr'), uiOutput('did_log'))
+          tabPanel("Numerical Outliers", uiOutput('outl_all')),
+          tabPanel("Categorical Loners", uiOutput('lnr_all')),
+          tabPanel("Binary", uiOutput('bin_all')),
+          tabPanel("Whitespaces", uiOutput('wsp_all')),
+          tabPanel("Spellings Issues", uiOutput('spl_all')),
+          tabPanel("Duplicate IDs", uiOutput('did_all'))
         )
       )
   )
@@ -303,34 +303,389 @@ shinyServer(function(input, output, session) {
     )
   )
   
-  output$msd_options <- renderUI(div(awesomeCheckboxGroup(inputId = "msd_subset", 
-                                                          label = "Select columns to check", 
-                                                          choices = data.cols(), 
-                                                          selected = data.cols()[!data.cols() %in% intelliChoice(isolate(dataset$data.loaded), "dateTime")], 
-                                                          inline = TRUE, status = "info"),
-                                     fluidRow(column(6,
-                                                     materialSwitch(inputId = "msd_remove", 
-                                                                    label = "Auto Remove Missing Data", 
-                                                                    status = "danger",
-                                                                    value = FALSE,
-                                                                    right = TRUE)
-                                                     ),
-                                     column(6,
-                                            materialSwitch(inputId = "msd_toNA", 
-                                                           label = "Auto replace suspect with NA", 
-                                                           status = "danger",
-                                                           value = FALSE,
-                                                           right = TRUE)
-                                                     )
-                                     ),
-                                     id = 'msd-args-holder'
-                                    )
-                                 )
+  output$msd_options <- 
+    renderUI(
+      div(awesomeCheckboxGroup(inputId = "msd_subset", 
+                               label = "Select variables to check", 
+                               choices = data.cols(), 
+                               selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), "missing")))], 
+                               inline = TRUE, status = "info"),
+          materialSwitch(inputId = "msd_fix", 
+          label = "Auto replace suspect with NA", 
+          status = "danger",
+          value = FALSE,
+          right = TRUE),
+      id = 'msd-args-holder'
+      )
+    )
+  
+  observe({
+    updateMaterialSwitch(session = session,
+                         inputId = 'msd_enabled',
+                         value = if (length(input$msd_subset)) TRUE else FALSE)
+  })
+  
   output$msd_instr <- renderUI(HTML(instr$msd_instruction))
   output$msd_log <- renderUI(div('lorem ipsum'))
   
+  ### Numerical Outliers ####
+  output$outl_all <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('outl_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('outl_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('outl_log'),
+             class = 'log-holder')
+    )
+  )
+  
+  output$outl_options <- 
+    renderUI(
+      div(
+        awesomeCheckboxGroup(
+          inputId = "outl_subset", 
+          label = "Select variables to check", 
+          choices = data.cols(), 
+          selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), "outliers")))], 
+          inline = TRUE, status = "info"
+        ),
+        pickerInput(
+          inputId = 'outl_model',
+          label = 'Outlier model (default: Adjusted)',
+          choices = c('Adjusted model' = 'adjusted', 'Tukey Boxplot model' = 'boxplot', 'Custom model' = 'custom'),
+          selected = 'adjusted',
+          width = '100%'
+        ),
+        fluidRow(
+          column(6, 
+                 textInput(inputId = 'outl_fnLower',
+                           label = 'Lower Bound Function',
+                           width = '100%')
+          ),
+          column(6, 
+                 textInput(inputId = 'outl_fnUpper',
+                           label = 'Upper Bound Function',
+                           width = '100%')
+                 )
+        ),
+        conditionalPanel(
+          condition = 'input.outl_model == "adjusted"',
+          fluidRow(
+            column(6,
+                   textInput(inputId = 'outl_skewA',
+                             label = 'Skew Param a',
+                             value = -4,
+                             width = '100%')),
+            column(6,
+                   textInput(inputId = 'outl_skewB',
+                             label = 'Skew Param b',
+                             value = 3,
+                             width = '100%'))
+          )
+        ),
+        conditionalPanel(
+          condition = 'input.outl_model == "custom"',
+          textInput(inputId = 'outl_params',
+                    label = 'Additional params definition',
+                    placeholder = 'var1 = value1, var2 = value2',
+                    width = '100%')
+        ),
+        fluidRow(
+          column(6,
+                 materialSwitch(inputId = "outl_acceptNegative", 
+                                label = "Accept negative value", 
+                                status = "info",
+                                value = FALSE,
+                                right = TRUE)
+                 ),
+          column(6,
+                 materialSwitch(inputId = "outl_acceptZero", 
+                                label = "Accept zero value", 
+                                status = "info",
+                                value = FALSE,
+                                right = TRUE)
+          )
+        ),
+        id = 'outl-args-holder'
+      )
+    )
+  
+  observeEvent(input$outl_model, {
+    
+    session$sendCustomMessage('outl_model', input$outl_model)
+    
+    updateTextInput(
+      session = session,
+      inputId = 'outl_fnUpper',
+      value = getOutlValue(type = 'upper', model = input$outl_model))
+    
+    updateTextInput(
+      session = session,
+      inputId = 'outl_fnLower',
+      value = getOutlValue(type = 'lower', model = input$outl_model))
+  })
+  
+  observe({
+    updateMaterialSwitch(session = session,
+                         inputId = 'outl_enabled',
+                         value = if (length(input$outl_subset)) TRUE else FALSE)
+  })
+  
+  output$outl_instr <- renderUI(HTML(instr$outl_instruction))
+  output$outl_log <- renderUI(div('lorem ipsum'))
+  
+  ### Categorical Loners ####
+  
+  output$lnr_all <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('lnr_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('lnr_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('lnr_log'),
+             class = 'log-holder')
+    )
+  )
+  
+  output$lnr_options <- 
+    renderUI(
+      div(awesomeCheckboxGroup(inputId = "lnr_subset", 
+                               label = "Select variables to check", 
+                               choices = data.cols(), 
+                               selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), "loners", accept.dateTime = isolate(input$lnr_dateAsFactor))))], 
+                               inline = TRUE, status = "info"),
+          fluidRow(
+            column(4,
+                   knobInput(
+                     inputId = "lnr_upLimit",
+                     label = "Upper Limit",
+                     value = 70,
+                     thickness = 0.1,
+                     min = 20,
+                     max = 100,
+                     step = 5,
+                     displayPrevious = TRUE, 
+                     width = 100,
+                     height = 100,
+                     lineCap = "round",
+                     fgColor = "#428BCA",
+                     inputColor = "#428BCA"
+                   )),
+            column(8,
+                   textInput(
+                     inputId = 'lnr_threshold',
+                     label = 'Max number of observation for loners',
+                     value = 5,
+                     placeholder = '(min: 1, default: 5)',
+                     width = '100%'
+                   ),
+                   materialSwitch(
+                     inputId = "lnr_dateAsFactor", 
+                     label = "Check date-time variables", 
+                     status = "info",
+                     inline = TRUE,
+                     value = FALSE,
+                     right = TRUE)
+                  )
+            
+          ),
+          id = 'lnr-args-holder'
+      )
+    )
+  
+  observeEvent(input$lnr_dateAsFactor, {
+    updateAwesomeCheckboxGroup(session = session,
+                               inputId = 'lnr_subset',
+                               selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), "loners", accept.dateTime = isolate(input$lnr_dateAsFactor))))])
+  })
+  
+  observe({
+      updateMaterialSwitch(session = session,
+                           inputId = 'lnr_enabled',
+                           value = if (length(input$lnr_subset)) TRUE else FALSE)
+  })
+  
+  output$lnr_instr <- renderUI(HTML(instr$lnr_instruction))
+  output$lnr_log <- renderUI(div('lorem ipsum'))
+  
+  ### Binary ####
+  
+  output$bin_all <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('bin_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('bin_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('bin_log'),
+             class = 'log-holder')
+    )
+  )
+  
+  output$bin_options <- 
+    renderUI(
+      div(awesomeCheckboxGroup(inputId = "bin_subset", 
+                               label = "Select variables to check", 
+                               choices = data.cols(), 
+                               selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), "binary")))], 
+                               inline = TRUE, status = "info"),
+          fluidRow(
+            column(4),
+            column(4,
+                   knobInput(
+                     inputId = "bin_upLimit",
+                     label = "Upper Limit",
+                     value = 70,
+                     thickness = 0.1,
+                     min = 20,
+                     max = 100,
+                     step = 5,
+                     displayPrevious = TRUE, 
+                     width = 100,
+                     height = 100,
+                     lineCap = "round",
+                     fgColor = "#428BCA",
+                     inputColor = "#428BCA"
+                   )),
+            column(4)
+          ),
+          id = 'bin-args-holder'
+      )
+    )
+  
+  observe({
+    updateMaterialSwitch(session = session,
+                         inputId = 'bin_enabled',
+                         value = if (length(input$bin_subset)) TRUE else FALSE)
+  })
+  
+  output$bin_instr <- renderUI(HTML(instr$bin_instruction))
+  output$bin_log <- renderUI(div('lorem ipsum'))
+  
+  ## Whitespaces check #####
+  
+  output$wsp_all <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('wsp_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('wsp_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('wsp_log'),
+             class = 'log-holder')
+    )
+  )
+  
+  output$wsp_options <- 
+    renderUI(
+      div(awesomeCheckboxGroup(inputId = "wsp_subset", 
+                               label = "Select variables to check", 
+                               choices = data.cols(), 
+                               selected = data.cols(), 
+                               inline = TRUE, status = "info"),
+          materialSwitch(
+            inputId = "wsp_whitespaces", 
+            label = "Leading & trailing spaces", 
+            status = "info",
+            inline = TRUE,
+            value = FALSE,
+            right = TRUE),
+          materialSwitch(
+            inputId = "wsp_doubleWSP", 
+            label = "Double whitespaces", 
+            status = "info",
+            inline = TRUE,
+            value = FALSE,
+            right = TRUE),
+          id = 'wsp-args-holder'
+      )
+    )
+  
+  observe({
+    updateMaterialSwitch(session = session,
+                         inputId = 'wsp_enabled',
+                         value = if (length(input$wsp_subset)) TRUE else FALSE)
+  })
+  
+  output$wsp_instr <- renderUI(HTML(instr$wsp_instruction))
+  output$wsp_log <- renderUI(div('lorem ipsum'))
+  
+  ## Spelling check #####
+  
+  output$spl_all <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('spl_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('spl_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('spl_log'),
+             class = 'log-holder')
+    )
+  )
+  
+  output$spl_options <- 
+    renderUI(
+      div(awesomeCheckboxGroup(inputId = "spl_subset", 
+                               label = "Select variables to check", 
+                               choices = data.cols(), 
+                               selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), 'spelling')))], 
+                               inline = TRUE, status = "info"),
+          fluidRow(
+            column(4),
+            column(4,
+                   knobInput(
+                     inputId = "spl_upLimit",
+                     label = "Upper Limit",
+                     value = 70,
+                     thickness = 0.1,
+                     min = 20,
+                     max = 100,
+                     step = 5,
+                     displayPrevious = TRUE, 
+                     width = 100,
+                     height = 100,
+                     lineCap = "round",
+                     fgColor = "#428BCA",
+                     inputColor = "#428BCA"
+                   )),
+            column(4)
+          ),
+          id = 'spl-args-holder'
+      )
+    )
+  
+  observe({
+    updateMaterialSwitch(session = session,
+                         inputId = 'spl_enabled',
+                         value = if (length(input$spl_subset)) TRUE else FALSE)
+  })
+  
+  output$spl_instr <- renderUI(HTML(instr$spl_instruction))
+  output$spl_log <- renderUI(div('lorem ipsum'))
+  
   #EOF  
   
-
-  
+  set_always_on(c('dataOptions',
+                  'msd_all', 'msd_options', 'msd_log', 'msd_instr', 
+                  'outl_all', 'outl_options', 'outl_log', 'outl_instr',
+                  'lnr_all', 'lnr_options', 'lnr_log', 'lnr_instr',
+                  'bin_all', 'bin_options', 'bin_log', 'bin_instr',
+                  'wsp_all', 'wsp_options', 'wsp_log', 'wsp_instr',
+                  'spl_all', 'spl_options', 'spl_log', 'spl_instr'
+  ),
+  output = output)
 })

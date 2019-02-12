@@ -110,6 +110,7 @@ _DT_initComplete = function() {
         scrollLeft: left}, 5);
     });
     SimpleBar_init('#methodsNav .tab-pane');
+    cssVar.contentHeight = $('#methodsNav .tab-pane.active').height() + 'px';
 
     $('#overlay').fadeOut(1000);
     $('#sidebar-holder').show();
@@ -152,6 +153,7 @@ $(document).ready(() => {
     $("#datasource").on("change", function() {
         $('#overlay').fadeIn(1000);
         $('#grand-top-bar').removeClass('pseudo-hidden');
+        $('div.material-switch input').prop('disabled', false);
         $('.navbar-toggle').removeClass('hidden');
         if ($('#datasource').val() == ''){
             $('#sidebar-holder').hide();
@@ -224,4 +226,16 @@ Shiny.addCustomMessageHandler('changeSheet', function(empty){
     $('#overlay .lds-roller').removeClass('hidden', 1000);
 });
 
+Shiny.addCustomMessageHandler('outl_model', function(model){
+    if (model === 'adjusted' | model === 'boxplot'){
+        $('#outl_fnLower').prop('disabled', true)
+        $('#outl_fnUpper').prop('disabled', true)
+    } else {
+        $('#outl_fnLower').prop('disabled', false)
+        $('#outl_fnUpper').prop('disabled', false)
+    }
+});
+
+
 //<div>Icons made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+//<div>Icons made by <a href="https://www.flaticon.com/authors/lucy-g" title="Lucy G">Lucy G</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>

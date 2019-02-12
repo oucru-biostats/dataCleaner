@@ -51,6 +51,7 @@ $input-top: calc(50vh - 20px);
     --barLeft: 0;
     --barRight: auto;
     --color-primary:rgb(66, 66, 66);
+    --color-primary-transparent:rgb(66, 66, 66, 0.5);
     --color-background: #f3f3f3;
     --color-background-transparent: #f3f3f3b7;
     --color-shadow: rgb(117, 117, 117);
@@ -172,7 +173,7 @@ body{
     -ms-transition: all 0.3s ease;
     -moz-transition: all 0.3s ease;
     -webkit-transition: all 0.3s ease;
-    min-width:200px;
+    min-width:300px;
     background: var(--color-background);
 
     .header-div{
@@ -844,7 +845,7 @@ body{
 
 #methodsNav{
     cursor: default;
-    height: calc(100vh - var(--grandTabTop) - 1px);
+    height: calc(97vh - var(--grandTabTop) - 1px);
     transition: height ease 0.3s;
     -moz-transition: height ease 0.3s;
     -webkit-transition: height ease 0.3s;
@@ -870,8 +871,6 @@ body{
     }
 
     .col-sm-9{
-        // height: calc(100vh - var(--grandTabTop) - 1px);
-        // overflow-y: auto;
         overflow-x: hidden;
         .tab-content{
             .material-switch {
@@ -882,29 +881,63 @@ body{
             }
 
             .tab-pane{
-                height: calc(100vh - var(--grandTabTop) - 1px);
+                height: calc(100vh - var(--grandTabTop) - 1px - 3vh);
+                min-height: 304px;
                 overflow-x: hidden!important;
-                margin-bottom:20px;
-                padding-right:0;
-                padding-left:10px;
+                padding-right: 0;
+                padding-left: 15px;
 
                 .row{
-                    padding-top: 0;
+                    padding-top: 3px;
         
                     .arg-holder{
                         position: relative;
-        
-                        @media only screen and (max-width: 500px){
-                            &::before{
-                                content: '';
-                                width: 40px;
-                                height: 40px;
-                                position: absolute;
-                                z-index: 14;
-                                top: 10px;
-                                left: 0px;
-                                background-color: red;
+
+                        .row {
+                            margin-bottom: 0;
+
+                            .col-sm-4{
+                                .form-group.shiny-input-container{
+                                    & > div {
+                                        display: block!important;
+                                    }
+                                }
                             }
+
+                            .col-sm-6{
+                                &:first-child{
+                                    padding-left: 0;
+                                    padding-right: 7.5px;
+    
+                                    @media only screen and (max-width: 500px){
+                                        padding: 0;
+                                    }
+                                }
+    
+                                &:last-child{
+                                    padding-left: 7.5px;
+                                    padding-right: 0;
+    
+                                    @media only screen and (max-width: 500px){
+                                        padding: 0
+                                    }
+                                }
+
+                                @media only screen and (max-width: 500px){
+                                    width: 100%;
+                                }
+    
+                                @media only screen and (min-width: 501px) and (max-width: 768px){
+                                    float:left;
+                                    width: 50%;
+                                }
+
+
+                            }
+                        }
+
+                        @media only screen and (max-width: 767px) {
+                            padding-left: 24px;
                         }
                     }
             
@@ -927,6 +960,10 @@ body{
                             width: 70vw;
                         }
                     }
+                }
+
+                @media only screen and (max-width: 500px){
+                    height: 40vh;
                 }
             }
         } 
@@ -954,8 +991,10 @@ body{
             margin-right:0;
             padding: 0;
             ul.nav-pills {
-                height: calc(100vh - var(--grandTabTop) - 1px);
-                width: 90vw;
+                // height: calc(100vh - var(--grandTabTop) - 1px - 3vh);
+                // height: 70vh;
+                height: var(--contentHeight);
+                width: 100vw;
                 background-color: var(--color-background);
                 box-shadow: 1px 0px -2px var(--color-inactive);
                 transition: all 0.3s ease;
@@ -968,15 +1007,34 @@ body{
                     &.active{
                         a{
                             background-color:unset;
-                            color: #337ab7;
+                            color: var(--color-inactive);
                             position:relative;
                         }
                     }
 
                     a{
                         padding-left: 10vw;
+                        color: var(--color-inactive);
+                        position:relative;
                     }
                 }
+
+                &.collapsed{
+                    margin-left: -90vw;
+
+                    @media only screen and (max-width: 500px){
+                        li.active a::after{
+                            content: url("img/left-arrow.svg");
+                            width: 24px;
+                            position: absolute;
+                            padding: 0;
+                            z-index: 14;
+                            top: 0;
+                            right: 12px;
+                        }
+                    }
+                }
+
             }
         }
 
@@ -997,28 +1055,47 @@ body{
             z-index: 12;
 
             ul.nav-pills {
-                background-color: var(--color-background);
-                box-shadow: 1px 0px -2px var(--color-inactive);
+                background-color: #fff;
+                @supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)){
+                    background-color: rgba(255,255,255,0.7);
+                    backdrop-filter: blur(7px);
+                    -webkit-backdrop-filter: blur(7px);
+                }
+                
                 transition: all 0.3s ease;
                 -ms-transition: all 0.3s ease;
                 -moz-transition: all 0.3s ease;
                 -webkit-transition: all 0.3s ease;
                 -o-transition: all 0.3s ease;
                 position:sticky;
+                position: -webkit-sticky;
                 top: 55px;
                 width: 240px;
+                border-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0) 1%, var(--color-primary-transparent) 49%,rgba(0,0,0,0) 100%) 1 100%;
+                border-width: 0 1px 0 0;
+                border-style: solid;
+                border-radius: 0 4px 4px 0;
+                box-sizing: border-box;
                 
                 li {
                     a{
                         margin-left:-5px;
                         padding-left: 80px;
-                    }
+                    }                    
+                }
 
-                    &.active a.collapsed::after{
-                        content: url('img/hamburger.svg');
-                        position: absolute;
-                        top: 11px;
-                        right: 13px;
+                &.collapsed{
+                    background-color: var(--color-background);
+                    margin-left: -200px;
+                    border-style: none;
+
+                    li {
+                        &.active a::after{
+                            content: url('img/hamburger.svg');
+                            position: absolute;
+                            top: 11px;
+                            right: 13px;
+                        }
                     }
                 }
             }
@@ -1028,6 +1105,10 @@ body{
             float: right;
             padding-left:10px;
             width: calc(100vw - 20px);
+
+            .row{
+                margin-bottom: 0;
+            }
         }
     }
 }
@@ -1056,7 +1137,7 @@ body{
 
             #methodsToggle{
                 position:relative;
-                top: calc(3vh + 3px);
+                top: calc(1.5vh + 1.5px);
                 left:20px;
                 width:0px;
                 z-index: 13;
@@ -1066,11 +1147,11 @@ body{
                 -ms-transition: all 0.3s ease    ;
                 -o-transition: all 0.3s ease    ;
                 
-                &.collapsed{
-                    height:0px;
-                    width:100px;
-                    overflow: hidden;
-                }
+                // &.collapsed{
+                //     height:0px;
+                //     width:100px;
+                //     overflow: hidden;
+                // }
 
                 .opt-holder{
                     margin-top:10px;
@@ -1079,6 +1160,16 @@ body{
 
                 @media only screen and (max-width: 500px){
                     left: 75vw;
+
+                    &.collapsed{
+                        margin-left: -90vw;
+                    }
+                }
+
+                @media only screen and (min-width: 501px) and (max-width: 767px){
+                    &.collapsed{
+                        margin-left: -200px;
+                    }
                 }
             }
 
@@ -1093,8 +1184,17 @@ body{
             .row{
                 margin-right: 0;
                 margin-left: 0;
-                padding-top: 3vh;
-                padding-bottom: 3vh;
+                padding-top: 1.5vh;
+               
+                // padding-bottom: 3vh;
+
+                @media only screen and (max-width: 500px) {
+                    margin-bottom: 50px;
+                }
+
+                @media only screen and (min-width: 501px) and (max-width: 767px){
+                    margin-bottom: 20px;
+                }
             }
         }
     }
