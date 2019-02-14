@@ -196,7 +196,7 @@ messageGenerator.306 <- function(message, displayName = c('keys', 'indexes', 'va
     displayValues <- displayValues[1:nMax]
     suffix <- sprintf(' (and %d more)', deltaL)
   }
-  displayValues.string <- toString(ifelse(displayName == 'values' & !is.na(displayValues), paste0('"', displayValues, '"'), displayValues))
+  displayValues.string <- toString(ifelse(displayName == 'values' & !is.na(displayValues), paste0('“', displayValues, '”'), displayValues))
   out <- sprintf('%s %s%s', message, displayValues.string, suffix)
   return(out)
 }
@@ -265,9 +265,9 @@ print.checkResult.306 <- function(x, table = TRUE, nMax = 5, display = c('values
         testResult <-
           if (x$problem[[var]]){
             if (nMax < length(displayValues[[var]]))
-              paste(toString(ifelse(display == 'values' & !is.na(displayValues[[var]][1:nMax]), paste0('"', displayValues[[var]][1:nMax], '"'), displayValues[[var]][1:nMax])), '(and', length(displayValues[[var]]) - nMax, 'more)')
+              paste(toString(ifelse(display == 'values' & !is.na(displayValues[[var]][1:nMax]), paste0('“', displayValues[[var]][1:nMax], '”'), displayValues[[var]][1:nMax])), '(and', length(displayValues[[var]]) - nMax, 'more)')
             else 
-              paste(toString(ifelse(display == 'values' & !is.na(displayValues[[var]]), paste0('"', displayValues[[var]], '"'), displayValues[[var]])))
+              paste(toString(ifelse(display == 'values' & !is.na(displayValues[[var]]), paste0('“', displayValues[[var]], '”'), displayValues[[var]])))
           } else x$message[[var]]
         return(c(var, testResult))
       })
@@ -319,7 +319,7 @@ print.checkResult.306.all_check <- function(x, table = TRUE, nMax = 5, display =
                               sprintf('%s (and %d more)',
                                       toString(ifelse(!is.na(displayValues[[test]][1:nMax]), 
                                                       if (display == 'values') 
-                                                        paste0('"', displayValues[[test]][1:nMax], '"')
+                                                        paste0('“', displayValues[[test]][1:nMax], '”')
                                                       else
                                                         displayValues[[test]][1:nMax])),
                                       length(displayValues[[test]]) - nMax)
@@ -376,7 +376,7 @@ print.checkResult.306.cleanify <- function(x, tests = getTestList(x), table = TR
             sprintf('%s (and %d more)',
                     toString(ifelse(!is.na(displayValues[[test,var]][1:nMax]), 
                                     if (display == 'values') 
-                                      paste0('"', displayValues[[test,var]][1:nMax], '"')
+                                      paste0('“', displayValues[[test,var]][1:nMax], '”')
                                     else
                                       displayValues[[test,var]][1:nMax],
                                     NA)),
@@ -464,6 +464,16 @@ setCustomFn <- function(fn = NULL, param = NULL){
   
   out <- structure(list(fnList = fnList, paramList = paramList), class = 'robustFn')
   return(out)
+}
+
+intelliRep <- function(v, simplify = 1){
+  if (!is.atomic(v)) stop('v should be an atomic vector.')
+  
+  v.unique <- unique(v)
+  nRep <- sapply(v.unique, function(v.this) sum(v == v.this))
+  nRep.unique <- unique(nRep)
+  if (simplify) return(nRep.unique)
+  else return(nRep)
 }
 
 intelliIsKey <- function(v, threshold = 1){
@@ -1012,6 +1022,55 @@ spelling_check <- function(v, v.type = intelliType(v), upLimit = 0.5, silent = F
   #### Return the output ####
   out <- cR306_init(testName = 'spelling issues', outClass = outClass,
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemIndexes, message = message, res = is.Wrong)
+  return(out)
+}
+
+redundancy_check <- function(v, repNo = 2, upLimit = 0.5, silent = FALSE, outClass = c('checkResult.306', 'checkResult')){
+  
+  #### Arguments check ####
+  if (ncol(as.data.frame(v)) > 1) stop('This function is for vector only. Use the loners_scan instead.')
+  if (!requireNamespace('dataMaid')) stop('Please install dataMaid package before continuing.')
+  
+  repNo <- suppressWarnings(as.numeric(repNo))
+  if (is.na(repNo) | is.null(repNo)) repNo <- 2 
+  if (any(is.na(upLimit), is.null(upLimit), !is.numeric(upLimit))) upLimit <- 0.5
+  else while (upLimit > 1) upLimit <- upLimit/10
+  silent <- as.logical(silent)
+  if (any(is.na(silent), is.null(silent))) silent <- FALSE
+  if (any(is.na(outClass), is.null(outClass))) outClass <- 'checkResult.306' else outClass <- match.arg(outClass)
+  if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
+  
+  #### Preparation of Outputs ####
+  problem <- logical(0)
+  problemValues <- NULL
+  problemIndexes <- NULL
+  res <- NULL
+  message <- list()
+  
+  #### Apply the check on variable ####
+  if (any(intelliRep(v) != repNo)) {
+    diff <- setdiff(intelliRep(v), repNo)
+    rep.full <- intelliRep(v, simplify = FALSE)
+    rep.pos <- which(rep.full %in% diff)
+    v.pos <- sapply(rep.pos, function(pos) sum(rep.full[1:pos-1]) + 1)
+    if (length(v.pos)/length(v) <= upLimit){
+      problem <- TRUE
+      problemValues <- v[v.pos]
+      problemIndexes <- v.pos
+      message <-  'These $display$ might $behave$ potential redundancy:'
+      res <- rep.full[rep.pos]
+    } else {
+      problem <- FALSE
+      message <- sprintf('We notice redundancy within your variable. However, this might be a wrong conclusion due to their overly high frequency (~%d%%).\n>>> Set upLimit to a higher value to override this behavior.', floor(upLimit * 100))
+    }
+  } else {
+    problem <- FALSE
+    message <- 'No problems found' 
+  }
+  
+  #### Return the output ####
+  out <- cR306_init(testName = 'redundancy issues', outClass = outClass,
+                    problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemIndexes, message = message, res = res)
   return(out)
 }
 

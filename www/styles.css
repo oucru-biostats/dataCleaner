@@ -300,6 +300,36 @@ body #foreground #text .lds-roller {
   top: 30px;
 }
 
+#dict-check-args-holder #info_path {
+  width: 100%;
+}
+
+#dict-check-args-holder #info_path label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#dict-check-args-holder #info_path #info_path_progress {
+  height: 3px;
+  overflow: hidden;
+  margin-top: -3px;
+  z-index: 10;
+  position: relative;
+}
+
+#dict-check-args-holder div.col-sm-5 {
+  padding: 13px 0;
+}
+
+#dict-check-args-holder div.col-sm-5 .form-group.shiny-input-container {
+  margin-top: 11px;
+}
+
+#dict-create-args-holder #defTable table.htCore tr td:nth-child(3) {
+  background: yellow;
+}
+
 #data-input-holder {
   display: block;
   z-index: 10001;
@@ -548,6 +578,12 @@ body #foreground #text .lds-roller {
           box-shadow: 2px 2px 10px #adabab;
 }
 
+#dataOptions #dropdown-menu-datasetMenu ul#dataset-menu li.disabled {
+  pointer-events: none;
+  color: var(--color-inactive);
+  font-style: italic;
+}
+
 #dataOptions #dropdown-menu-datasetMenu > li {
   margin-left: 0 !important;
   margin-right: 0 !important;
@@ -566,6 +602,10 @@ body #foreground #text .lds-roller {
   border-radius: 0 4px 4px 4px;
 }
 
+#dataOptions #columns-chooser-holder .disabled, #dataOptions #key-var-chooser-holder .disabled {
+  pointer-events: none;
+}
+
 #dataOptions #columns-chooser-holder .awesome-checkbox-chooser, #dataOptions #key-var-chooser-holder .awesome-checkbox-chooser {
   max-height: 70vh;
   width: auto;
@@ -574,6 +614,14 @@ body #foreground #text .lds-roller {
   padding: 0;
   -webkit-box-shadow: 0px 0px 5px var(--color-inactive);
           box-shadow: 0px 0px 5px var(--color-inactive);
+}
+
+#dataOptions #columns-chooser-holder .awesome-checkbox-chooser > p, #dataOptions #key-var-chooser-holder .awesome-checkbox-chooser > p {
+  padding: 5px;
+  margin: 0;
+  color: var(--color-inactive);
+  text-align: right;
+  font-style: italic;
 }
 
 #dataOptions #columns-chooser-holder .awesome-checkbox-chooser::-webkit-scrollbar, #dataOptions #key-var-chooser-holder .awesome-checkbox-chooser::-webkit-scrollbar {
@@ -590,7 +638,6 @@ body #foreground #text .lds-roller {
   padding: 0px 0px 7px 7px !important;
   max-height: 70vh;
   overflow-y: auto;
-  min-height: 100px;
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
   overflow-x: hidden;
@@ -861,7 +908,7 @@ body #foreground #text .lds-roller {
   border-color: transparent;
 }
 
-#methodsNav {
+#methodsNav, #dictNav {
   cursor: default;
   height: calc(97vh - var(--grandTabTop) - 1px);
   transition: height ease 0.3s;
@@ -871,7 +918,7 @@ body #foreground #text .lds-roller {
   -o-transition: height ease 0.3s;
 }
 
-#methodsNav li a {
+#methodsNav li a, #dictNav li a {
   transition: background-color 0.3s ease;
   -ms-transition: background-color 0.3s ease;
   -moz-transition: background-color 0.3s ease;
@@ -883,26 +930,26 @@ body #foreground #text .lds-roller {
   text-overflow: ellipsis;
 }
 
-#methodsNav li.navbar-brand {
+#methodsNav li.navbar-brand, #dictNav li.navbar-brand {
   white-space: nowrap;
 }
 
-#methodsNav ul.dropdown-menu.inner li a {
+#methodsNav ul.dropdown-menu.inner li a, #dictNav ul.dropdown-menu.inner li a {
   padding-left: 15px;
 }
 
-#methodsNav .col-sm-9 {
+#methodsNav .col-sm-9, #dictNav .col-sm-9 {
   overflow-x: hidden;
 }
 
-#methodsNav .col-sm-9 .tab-content .material-switch {
+#methodsNav .col-sm-9 .tab-content .material-switch, #dictNav .col-sm-9 .tab-content .material-switch {
   white-space: nowrap;
   padding: 5px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane {
+#methodsNav .col-sm-9 .tab-content .tab-pane, #dictNav .col-sm-9 .tab-content .tab-pane {
   height: calc(100vh - var(--grandTabTop) - 1px - 3vh);
   min-height: 304px;
   overflow-x: hidden !important;
@@ -910,64 +957,64 @@ body #foreground #text .lds-roller {
   padding-left: 15px;
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row {
+#methodsNav .col-sm-9 .tab-content .tab-pane .row, #dictNav .col-sm-9 .tab-content .tab-pane .row {
   padding-top: 3px;
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder {
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder {
   position: relative;
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row {
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row {
   margin-bottom: 0;
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-4 .form-group.shiny-input-container > div {
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-4 .form-group.shiny-input-container > div, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-4 .form-group.shiny-input-container > div {
   display: block !important;
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:first-child {
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:first-child, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:first-child {
   padding-left: 0;
   padding-right: 7.5px;
 }
 
 @media only screen and (max-width: 500px) {
-  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:first-child {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:first-child, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:first-child {
     padding: 0;
   }
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:last-child {
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:last-child, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:last-child {
   padding-left: 7.5px;
   padding-right: 0;
 }
 
 @media only screen and (max-width: 500px) {
-  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:last-child {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:last-child, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6:last-child {
     padding: 0;
   }
 }
 
 @media only screen and (max-width: 500px) {
-  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6 {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6 {
     width: 100%;
   }
 }
 
 @media only screen and (min-width: 501px) and (max-width: 768px) {
-  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6 {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .row .col-sm-6 {
     float: left;
     width: 50%;
   }
 }
 
 @media only screen and (max-width: 767px) {
-  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder {
     padding-left: 24px;
   }
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder {
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder {
   width: 0px;
   display: none;
   position: absolute;
@@ -982,21 +1029,21 @@ body #foreground #text .lds-roller {
   -webkit-transition: all 0.3s ease;
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder div {
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder div, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder div {
   width: 70vw;
 }
 
 @media only screen and (max-width: 500px) {
-  #methodsNav .col-sm-9 .tab-content .tab-pane {
+  #methodsNav .col-sm-9 .tab-content .tab-pane, #dictNav .col-sm-9 .tab-content .tab-pane {
     height: 40vh;
   }
 }
 
-#methodsNav .navbar-brand {
+#methodsNav .navbar-brand, #dictNav .navbar-brand {
   display: none;
 }
 
-#methodsNav .well {
+#methodsNav .col-sm-3, #dictNav .col-sm-3 {
   border: none;
   padding: 10px;
   -webkit-box-shadow: none;
@@ -1006,17 +1053,17 @@ body #foreground #text .lds-roller {
 }
 
 @media only screen and (max-width: 500px) {
-  #methodsNav {
+  #methodsNav, #dictNav {
     width: 100vw;
   }
-  #methodsNav .col-sm-3.well {
+  #methodsNav .col-sm-3, #dictNav .col-sm-3 {
     width: 0;
     float: left;
     z-index: 12;
     margin-right: 0;
     padding: 0;
   }
-  #methodsNav .col-sm-3.well ul.nav-pills {
+  #methodsNav .col-sm-3 ul.nav-pills, #dictNav .col-sm-3 ul.nav-pills {
     height: var(--contentHeight);
     width: 100vw;
     background-color: var(--color-background);
@@ -1028,23 +1075,23 @@ body #foreground #text .lds-roller {
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
   }
-  #methodsNav .col-sm-3.well ul.nav-pills > li.active a {
+  #methodsNav .col-sm-3 ul.nav-pills > li.active a, #dictNav .col-sm-3 ul.nav-pills > li.active a {
     background-color: unset;
     color: var(--color-inactive);
     position: relative;
   }
-  #methodsNav .col-sm-3.well ul.nav-pills > li a {
+  #methodsNav .col-sm-3 ul.nav-pills > li a, #dictNav .col-sm-3 ul.nav-pills > li a {
     padding-left: 10vw;
     color: var(--color-inactive);
     position: relative;
   }
-  #methodsNav .col-sm-3.well ul.nav-pills.collapsed {
+  #methodsNav .col-sm-3 ul.nav-pills.collapsed, #dictNav .col-sm-3 ul.nav-pills.collapsed {
     margin-left: -90vw;
   }
 }
 
 @media only screen and (max-width: 500px) and (max-width: 500px) {
-  #methodsNav .col-sm-3.well ul.nav-pills.collapsed li.active a::after {
+  #methodsNav .col-sm-3 ul.nav-pills.collapsed li.active a::after, #dictNav .col-sm-3 ul.nav-pills.collapsed li.active a::after {
     content: url("img/left-arrow.svg");
     width: 24px;
     position: absolute;
@@ -1056,21 +1103,21 @@ body #foreground #text .lds-roller {
 }
 
 @media only screen and (max-width: 500px) {
-  #methodsNav .col-sm-9 {
+  #methodsNav .col-sm-9, #dictNav .col-sm-9 {
     width: 100vw;
     float: right;
   }
 }
 
 @media only screen and (min-width: 501px) and (max-width: 767px) {
-  #methodsNav .col-sm-3.well {
+  #methodsNav .col-sm-3, #dictNav .col-sm-3 {
     padding-left: 0;
     padding-right: 0;
     width: 0;
     float: left;
     z-index: 12;
   }
-  #methodsNav .col-sm-3.well ul.nav-pills {
+  #methodsNav .col-sm-3 ul.nav-pills, #dictNav .col-sm-3 ul.nav-pills {
     background-color: #fff;
     transition: all 0.3s ease;
     -ms-transition: all 0.3s ease;
@@ -1091,34 +1138,48 @@ body #foreground #text .lds-roller {
             box-sizing: border-box;
   }
   @supports ((-webkit-backdrop-filter: blur(5px)) or (backdrop-filter: blur(5px))) or (-webkit-backdrop-filter: blur(5px)) {
-    #methodsNav .col-sm-3.well ul.nav-pills {
+    #methodsNav .col-sm-3 ul.nav-pills, #dictNav .col-sm-3 ul.nav-pills {
       background-color: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(7px);
       -webkit-backdrop-filter: blur(7px);
     }
   }
-  #methodsNav .col-sm-3.well ul.nav-pills li a {
+  #methodsNav .col-sm-3 ul.nav-pills li a, #dictNav .col-sm-3 ul.nav-pills li a {
     margin-left: -5px;
     padding-left: 80px;
   }
-  #methodsNav .col-sm-3.well ul.nav-pills.collapsed {
+  #methodsNav .col-sm-3 ul.nav-pills.collapsed, #dictNav .col-sm-3 ul.nav-pills.collapsed {
     background-color: var(--color-background);
     margin-left: -200px;
     border-style: none;
   }
-  #methodsNav .col-sm-3.well ul.nav-pills.collapsed li.active a::after {
+  #methodsNav .col-sm-3 ul.nav-pills.collapsed li.active a::after, #dictNav .col-sm-3 ul.nav-pills.collapsed li.active a::after {
     content: url("img/hamburger.svg");
     position: absolute;
     top: 11px;
     right: 13px;
   }
-  #methodsNav .col-sm-9 {
+  #methodsNav .col-sm-9, #dictNav .col-sm-9 {
     float: right;
     padding-left: 10px;
     width: calc(100vw - 20px);
   }
-  #methodsNav .col-sm-9 .row {
+  #methodsNav .col-sm-9 .row, #dictNav .col-sm-9 .row {
     margin-bottom: 0;
+  }
+}
+
+#dictNav .row {
+  padding-top: 3vh;
+}
+
+#dictNav .row .col-sm-3 ul.nav-pills li a {
+  padding-left: 15px;
+}
+
+@media only screen and (min-width: 501px) and (max-width: 767px) {
+  #dictNav .row .col-sm-3 ul.nav-pills li a {
+    padding-left: 15px;
   }
 }
 

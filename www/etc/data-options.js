@@ -10,6 +10,10 @@ $('#dataOptions .awesome-checkbox').click(function(e){
     if (!$(this).find('input').is(e.target) && !$(this).find('label').is(e.target)) $(this).find('input').click();
 });
 
+$('#dataOptions .radio-bs').click(function(e){
+    if (!$(this).find('input').is(e.target) && !$(this).find('label').is(e.target)) $(this).find('input').click();
+});
+
 let last_default = null;
 $('#dataOptions .awesome-checkbox').contextmenu(function(e){
     e.preventDefault();

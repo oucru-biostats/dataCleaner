@@ -12,7 +12,9 @@ shinyUI(navbarPage(
              ),
            class = 'grand-tab-panel'
            ),
-  tabPanel('Dictionary Check'
+  tabPanel('Dictionary Check',
+           uiOutput('dictNav'),
+           class = 'grand-tab-panel'
            ),
   tabPanel('About'
            ),

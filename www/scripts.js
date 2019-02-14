@@ -110,6 +110,7 @@ _DT_initComplete = function() {
         scrollLeft: left}, 5);
     });
     SimpleBar_init('#methodsNav .tab-pane');
+    SimpleBar_init('#dictNav .tab-pane');
     cssVar.contentHeight = $('#methodsNav .tab-pane.active').height() + 'px';
 
     $('#overlay').fadeOut(1000);

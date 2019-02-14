@@ -150,19 +150,20 @@ shinyServer(function(input, output, session) {
                   div(style='display:none', "...")
                 )
               ),
-              
-              tags$li(div('Set key variable', id = 'set-key-var'),
+              tags$li(class = if (!length(data.keys())) 'disabled',
+                      div('Set key variable', id = 'set-key-var'),
                       tags$ul(
                         tags$li(
                           id = 'key-var-chooser-holder',
                           div(
-                            awesomeRadio(inputId = 'keyVariable',
-                                         label = NULL,
-                                         status = 'primary',
-                                         choices = data.cols(),
-                                         selected = NULL,
-                                         width = 'auto'
-                            ),
+                            if (length(data.keys()))
+                              awesomeRadio(inputId = 'keyVariable',
+                                           label = NULL,
+                                           status = 'primary',
+                                           choices = data.keys(),
+                                           selected = data.keys()[1],
+                                           width = 'auto'
+                              ) else p('(Empty)'),
                             id = 'key-var-chooser',
                             class = 'awesome-checkbox-chooser'
                           )
@@ -211,14 +212,15 @@ shinyServer(function(input, output, session) {
       div(
         tags$script(src = "etc/methods-nav.js"),
         navlistPanel(
-          "Methods list",
           tabPanel("Missing Data", uiOutput('msd_all')),
-          tabPanel("Duplicate IDs", uiOutput('did_all')),
+          tabPanel("Redundant Data", uiOutput('did_all')),
           tabPanel("Numerical Outliers", uiOutput('outl_all')),
           tabPanel("Categorical Loners", uiOutput('lnr_all')),
           tabPanel("Binary", uiOutput('bin_all')),
           tabPanel("Whitespaces", uiOutput('wsp_all')),
-          tabPanel("Spellings Issues", uiOutput('spl_all'))
+          tabPanel("Spellings Issues", uiOutput('spl_all')),
+          widths = c(3, 9),
+          well = FALSE
         )
       )
   )
@@ -279,6 +281,22 @@ shinyServer(function(input, output, session) {
         ),
         id = 'methods-toggle-holder'
       )
+  )
+  
+  output$dictNav <- renderUI(
+    div(
+      tags$script(src = "etc/dict-nav.js"),
+      navlistPanel(
+        tabPanel('Check with pre-defined Dict',
+                 div(id = 'dict-check',
+                     uiOutput('dictCheck'))),
+        tabPanel('Create new Dictionary',
+                 div(id = 'dict-create',
+                     uiOutput('dictCreate'))),
+        well = FALSE,
+        widths = c(3, 9)
+      )
+    )
   )
   
   ## Methods details #####
@@ -683,7 +701,7 @@ shinyServer(function(input, output, session) {
   output$spl_instr <- renderUI(HTML(instr$spl_instruction))
   output$spl_log <- renderUI(div('lorem ipsum'))
   
-  ### Duplicated observation ####
+  ### Redundant observation ####
   
   output$did_all <- renderUI(
     fluidRow(
@@ -701,47 +719,131 @@ shinyServer(function(input, output, session) {
   
   output$did_options <- 
     renderUI(
-      if (length(data.keys())) div(
-        pickerInput(inputId = 'did_key',
-                    label = "Select ONE variable for ID",
-                    choices = data.keys()
-                    ),
+      div(
         awesomeCheckboxGroup(inputId = "did_subset", 
-                             label = "Select variables to check", 
-                             choices = isolate(data.cols()[data.cols() != input$did_key]), 
-                             selected = isolate(data.cols()[data.cols() != input$did_key]), 
+                             label = "Select variables to check (ID variable excluded)", 
+                             choices = data.cols(), 
+                             selected = data.cols(), 
                              inline = TRUE, status = "info"),
         id = 'spl-args-holder'
-      ) else div(p('There is no variables in your data that can play the role as identification key.'))
+      )
     )
   
   observe({
     updateMaterialSwitch(session = session,
                          inputId = 'did_enabled',
-                         value = if (length(input$did_subset) & !is.null(data.keys())) TRUE else FALSE)
+                         value = if (length(input$did_subset)) TRUE else FALSE)
   })
   
-  observeEvent(input$did_key, {
-    updateAwesomeCheckboxGroup(session = session,
-                               inputId = 'did_subset',
-                               choices = isolate(data.cols()[data.cols() != input$did_key]),
-                               selected = isolate(data.cols()[data.cols() != input$did_key]),
-                               inline = TRUE, status = "info")
+  observe({
+    req(input$keyVariable)
+    if (length(input$keyVariable))
+      updateAwesomeCheckboxGroup(session = session,
+                                 inputId = 'did_subset',
+                                 choices =  data.cols()[data.cols() != input$keyVariable], 
+                                 selected = data.cols()[data.cols() != input$keyVariable], 
+                                 inline = TRUE, status = "info")
   })
   
   output$did_instr <- renderUI(HTML(instr$spl_instruction))
   output$did_log <- renderUI(div('lorem ipsum'))
   
+  ## Dictionary #####
+  
+  ### Dictionary Check ####
+  output$dictCheck <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('dictCheck_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('dictCheck_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('dictCheck_log'),
+             class = 'log-holder')
+    )
+  )
+    
+  output$dictCheck_options <-   
+    renderUI(
+      div(
+        tags$script(src = 'etc/dict-check.js'),
+        fluidRow(
+          column(7,
+                 fileInput(inputId = 'info_path',
+                           label = 'Get dictionary file', 
+                           accept = c("text/csv", 
+                                      "text/comma-separated-values,text/plain",
+                                      ".csv", ".xls", ".xlsx"),
+                           width = '100%')
+                 ),
+          column(5,
+                 switchInput(inputId = "plot", value = FALSE, label = 'Plotting' , size = 'normal', width = '100%'))
+        ),
+        
+        actionButton("check", "Check data"),
+        textOutput("out", container = span),
+        
+        id = 'dict-check-args-holder'
+      )
+    )
+  
+  output$dictCheck_instr <- renderUI(HTML(instr$spl_instruction))
+  output$dictCheck_log <- renderUI(div('lorem ipsum'))
+  
+  
+  ### Dictionary Create ####
+  output$dictCreate <- renderUI(
+    fluidRow(
+      column(8,
+             uiOutput('dictCreate_options'),
+             class = 'arg-holder'),
+      column(4,
+             uiOutput('dictCreate_instr'),
+             class = 'instr-holder'),
+      column(7,
+             uiOutput('dictCreate_log'),
+             class = 'log-holder')
+    )
+  )
+  
+  output$dictCreate_options <- 
+    renderUI(
+      div(
+        tags$script(src = 'etc/dict-create.js'),
+        rHandsontableOutput("defTable"),
+        id = 'dict-create-args-holder'
+      )
+    )
+  
+  observe({
+    if (is.data.frame(dataset$data.loaded))
+      dataset$data.defTable <- cbind(varname = data.cols(), label = "", type = "", 
+                                     unit = "", value = "", levels = "", def = "", missing = "")
+  })
+  
+  output$defTable <- renderRHandsontable(
+    rhandsontable(req(dataset$data.defTable), stretchH = "all") %>%
+      hot_cols(fixedColumnsLeft = 1) %>%
+      hot_rows(fixedRowsTop = 1)
+  )
+  
+  output$dictCreate_instr <- renderUI(HTML(instr$spl_instruction))
+  output$dictCreate_log <- renderUI(div('lorem ipsum'))
+  
   #EOF  
   
-  set_always_on(c('dataOptions',
+  set_always_on(c('dataOptions', 'methodsNav', 'dictNav',
                   'msd_all', 'msd_options', 'msd_log', 'msd_instr', 
                   'outl_all', 'outl_options', 'outl_log', 'outl_instr',
                   'lnr_all', 'lnr_options', 'lnr_log', 'lnr_instr',
                   'bin_all', 'bin_options', 'bin_log', 'bin_instr',
                   'wsp_all', 'wsp_options', 'wsp_log', 'wsp_instr',
                   'spl_all', 'spl_options', 'spl_log', 'spl_instr',
-                  'did_all', 'did_options', 'did_log', 'did_instr'
+                  'did_all', 'did_options', 'did_log', 'did_instr',
+                  'dictCheck', 'dictCheck_options','dictCheck_log', 'dictCheck_instr', 
+                  'dictCreate', 'dictCreate_options','dictCreate_log', 'dictCreate_instr'
   ),
   output = output)
 })
