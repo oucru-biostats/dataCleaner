@@ -1,11 +1,10 @@
 .Rproj.user/
 .Rproj.user/BE2AA66A/sources/s-8C608C84/136A8124
-.Rproj.user/*
+.Rproj.user/**
 .Rdata
 .Rhistory
-.Rproj.user/BE2AA66A/sources/prop/342407ED
-.Rproj.user/BE2AA66A/sources/prop/342407ED
+.Rproj.user/BE2AA66A/sources/prop/F8368369
 .Rproj.user/BE2AA66A/sources/prop/F8368369
 .Rproj.user/BE2AA66A/sources/prop/342407ED
-.Rproj.user/BE2AA66A/sources/prop/342407ED
-.Rproj.user/BE2AA66A/sources/prop/F8368369
+*.pper
+
