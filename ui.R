@@ -1,8 +1,14 @@
 shinyUI(navbarPage(
-  title = tags$div(class = 'header-div',
-                   HTML('&#129302;'),' Data-Clean Robot',
-                   em('Beta')),
+  title = div(
+    class = 'header-div',
+    id = 'header-div',
+    span(
+      id = 'header',
+      HTML('&#129302;'),' Data-Clean Robot',
+      em('Beta 2')
+    )),
   tabPanel('General Check',
+           uiOutput('actionCheckBar'),
            fluidRow(
              column(1,
                     uiOutput('methodsToggle'),
@@ -13,6 +19,7 @@ shinyUI(navbarPage(
            class = 'grand-tab-panel'
            ),
   tabPanel('Dictionary Check',
+           uiOutput('actionDictBar'),
            uiOutput('dictNav'),
            class = 'grand-tab-panel'
            ),
@@ -59,9 +66,6 @@ shinyUI(navbarPage(
                            class = 'pseudo-hidden'),
                     id = 'data-input-holder',
                     class = 'center' )),
-                div(
-                  id = 'sheetPicker-holder'
-                ),
                 uiOutput('sheetResult'),
                 uiOutput('dataOptions'),
                 DTOutput('dataset')

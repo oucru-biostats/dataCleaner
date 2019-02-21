@@ -7,14 +7,14 @@ let nav_title = {
     short_form: ['MSD','OUTL','LNR','BIN','WSP','SPL','DID']
 }
 
-set_bar = (x, y) => {
+const set_bar = (x, y) => {
     barSize.barLeft = x;
     barSize.barRight = y;
     cssVar.barLeft = barSize.barLeft + 'px';
     cssVar.barRight = `calc(100% - ${barSize.barRight}px)`;
 };
 
-set_inputDT = function(table){
+const set_inputDT = function(table){
     table.cells().every(function(i, j, tab, cell) {
         var $this = $(this.node());
         if ($this.find('input').length > 0){
@@ -23,7 +23,7 @@ set_inputDT = function(table){
       });
 }
 
-tagParse = function(table){
+const tagParse = function(table){
     table.cells().every(function(i, j, tab, cell){
         var $this = $(this.node());
         tagList = ['wrong','corrected', 'navalue', 'loner'];
@@ -39,14 +39,14 @@ tagParse = function(table){
     });
 };
 
-SimpleBar_init = (elList) => {
+const SimpleBar_init = (elList) => {
     $(document).find(elList).each(function(idx, el) {
         new SimpleBar(el);
         $(el).css('overflow','unset');
     });
 }
 
-responsiveText = function(){
+const responsiveText = function(){
     cssVar.grandTabTop = ($('#dataset').position().top + $('#dataset').outerHeight()) + 'px';
     if ($(window).width() < 768){
         // $('#methodsNav').addClass('smallMedia', 300);
@@ -63,7 +63,7 @@ responsiveText = function(){
     }    
 }
 
-_init_methodsSection = () => {
+const _init_methodsSection = () => {
     // if ($(window).width() < 768){
     //     $('#methodsNav').addClass('smallMedia', 300);
     //     $('#methodsToggle').addClass('smallMedia', 300);
@@ -75,7 +75,7 @@ _init_methodsSection = () => {
     // }   
 }
 
-_DT_callback = function(dt) {
+const _DT_callback = function(dt) {
     SimpleBar_init('#dataset .dataTables_scrollBody');
     set_inputDT(dt.api().table()); 
     tagParse(dt.api().table());
@@ -100,7 +100,7 @@ _DT_callback = function(dt) {
     responsiveText();
 }
 
-_DT_initComplete = function() {
+const _DT_initComplete = function() {
     
     // SimpleBar_init('#dataset .dataTables_scroll');
     
@@ -111,7 +111,8 @@ _DT_initComplete = function() {
     });
     SimpleBar_init('#methodsNav .tab-pane');
     SimpleBar_init('#dictNav .tab-pane');
-    cssVar.contentHeight = $('#methodsNav .tab-pane.active').height() + 'px';
+    cssVar.contentHeight = $('.tab-pane.grand-tab-panel.active .tab-pane.active').height() + 'px';
+    cssVar.contentinnerHeight = $('.tab-pane.grand-tab-panel.active .tab-pane.active .simplebar-content .row').height() + 'px';
 
     $('#overlay').fadeOut(1000);
     $('#sidebar-holder').show();
@@ -129,6 +130,25 @@ _DT_initComplete = function() {
     _init_methodsSection();
 }
 
+const nav_init = (el, methods) => {
+    methods.map((method, idx) => {
+        $($(el).find('ul.nav.nav-pills li a')[idx]).data('code', method);
+        $($(el).find('ul.nav.nav-pills li a')).click(function(){
+            $('.actionBar .btn:not(#all_action)').addClass('hidden');
+            $(`.actionBar .btn#${$(this).data('code')}_action`).removeClass('hidden');
+        })
+    });
+    $('.actionBar .btn:not(#all_action)').addClass('hidden');
+    $(`.actionBar .btn#${$(el).find('ul.nav.nav-pills li.active a').data('code')}_action`).removeClass('hidden');
+};
+
+const backBtn = id => $(`<div class = 'backBtn' id = '${id}-backBtn'></div>`); 
+
+const logHolder_init = el => {
+    el.addClass('logHolder-default');
+    el.prepend(backBtn(el.attr('id')));
+};
+
 /* jquery code run */
 
 $(document).ready(() => {
@@ -136,7 +156,8 @@ $(document).ready(() => {
     $('#grand-top-bar').addClass('pseudo-hidden');
     $('.navbar-toggle').addClass('hidden');
     set_bar($('#grand-top-bar li.active').position().left, $('#grand-top-bar li.active').position().left + $('#grand-top-bar li.active').outerWidth());
-    
+    $('#data-input-holder').prepend($('#header'));
+
     $('#grand-top-bar').find('li').hover(function(){
         if ($(this).position().left > barSize.barLeft)
             set_bar(barSize.barLeft, $(this).position().left + $(this).outerWidth());
@@ -156,12 +177,16 @@ $(document).ready(() => {
         $('#grand-top-bar').removeClass('pseudo-hidden');
         $('div.material-switch input').prop('disabled', false);
         $('.navbar-toggle').removeClass('hidden');
+        $('.log-holder').removeClass('show');
+        $('.arg-holder div').removeClass('disabled');
         if ($('#datasource').val() == ''){
+            $('#data-input-holder').prepend($('#header'));
             $('#sidebar-holder').hide();
             $('#data-input-holder').addClass('center', 300);
             $($('#data-input-holder label')[0]).removeClass('hidden');
             $('#overlay .lds-roller').addClass('hidden',1000);
         } else {
+            $('#header-div').append($('#header'));
             $('#overlay .lds-roller').removeClass('hidden',1000);
             $('#data-input-holder').removeClass('center', 1000);
             $($('#data-input-holder label')[0]).addClass('hidden', 1000);
@@ -207,7 +232,8 @@ $('nav').on('swiperight', () => {
 $(window).resize(() => {
     set_bar($('#grand-top-bar li.active').position().left, $('#grand-top-bar li.active').position().left + $('#grand-top-bar li.active').outerWidth());
     cssVar.datasetTop = $(window).width() > 500 ? '70px' : '120px';
-
+    cssVar.contentHeight = $('.tab-pane.grand-tab-panel.active .tab-pane.active').height() + 'px';
+    cssVar.contentinnerHeight = $('.tab-pane.grand-tab-panel.active .tab-pane.active .simplebar-content .row').height() + 'px';
     responsiveText();  
 })
 
@@ -237,7 +263,28 @@ Shiny.addCustomMessageHandler('outl_model', function(model){
     }
 });
 
+Shiny.addCustomMessageHandler('has_keys', function(has_keys){
+    $('#did_repNo').prop('disabled', has_keys)
+});
+
 Shiny.addCustomMessageHandler('disabledMethod', disabled => disabled.map(value => $(`#${value}`).prop('disabled', true)));
+
+Shiny.addCustomMessageHandler('logOn', id => {
+    let logHolder = $(`#${id}-log-holder`);
+    let argHolder = $(`#${id}_options`);
+    logHolder.height(logHolder.parent().height()).addClass('show', 300);
+    // logHolder.addClass('show', 300)
+    // setTimeout(logHolder.addClass('show', 300), 300);
+    argHolder.addClass('disabled');
+
+    if (!logHolder.hasClass('logHolder-default')) logHolder_init(logHolder);
+    cssVar.contentinnerHeight = $('.tab-pane.grand-tab-panel.active .tab-pane.active .simplebar-content .row').height() + 'px';
+
+});
+
+Shiny.addCustomMessageHandler('haveData', haveData => {
+    if (haveData) $('#overlay').fadeOut(1000);
+});
 
 //<div>Icons made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 //<div>Icons made by <a href="https://www.flaticon.com/authors/lucy-g" title="Lucy G">Lucy G</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>

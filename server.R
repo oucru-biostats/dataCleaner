@@ -3,9 +3,9 @@ library(future)
 plan(multiprocess)
 
 shinyServer(function(input, output, session) {
-  observeEvent(input$datasource,{
-    session$sendCustomMessage('haveData', TRUE)
-  })
+  # observeEvent(dataset$shownData, {
+  #   session$sendCustomMessage('haveData', TRUE)
+  # })
   
   # Adding data ######
   
@@ -15,7 +15,8 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$datasource, {
     fileInfo$ext <- tools::file_ext(input$datasource$datapath)
-    ext(tools::file_ext(input$datasource$datapath))
+    name.split <- strsplit(input$datasource$name, '\\.')[[1]]
+    fileInfo$name <- do.call(paste0, as.list(name.split[-length(name.split)]))
     fileInfo$path <- gsub(input$datasource$name, '', input$datasource$datapath)
   })
   
@@ -34,9 +35,8 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$sheetPicker,{
-    session$sendCustomMessage('changeSheet',TRUE)
+    if (isTRUE(input$sheetPicker != dataset$sheet)) session$sendCustomMessage('changeSheet',TRUE)
   })
-  
   
   output$sheetPicker <- renderUI(
     if (isTRUE(fileInfo$ext %in% c('xls', 'xlsx')))
@@ -53,26 +53,47 @@ shinyServer(function(input, output, session) {
       read_excel(datapath, sheet = sheet())
   }
   
-  read.data <- function(datapath){
+  read.data <- function(datapath, fileInfo){
     out <- switch(fileInfo$ext,
                   "xls" = read_excel_shiny(datapath),
                   "xlsx" = read_excel_shiny(datapath),
                   "csv" = read.csv(datapath, stringsAsFactors = FALSE),
                   default = print("Def")
     )
-    return(out)
+    if (is.data.frame(out)) {
+      if (nrow(out) > 0 && ncol(out) >0) {
+        if (fileInfo$ext %in% c('xls', 'xlsx')) dataset$sheet <- input$sheetPicker
+        return(out)
+      }
+      else {
+        sendSweetAlert(session, title = 'Blank Data',
+                       text = 'This is a blank data. You will be reset to the old one', type = 'error')
+        if (fileInfo$ext %in% c('xls', 'xlsx'))
+          updatePickerInput(session,
+                            inputId = 'sheetPicker',
+                            selected = dataset$sheet)
+        session$sendCustomMessage('haveData', TRUE)
+        return(NULL)
+      }
+    } else {
+      sendSweetAlert(session, title = 'Not a data frame',
+                     text = 'This is not a data frame. You will be reset to the old one', type = 'error')
+      session$sendCustomMessage('haveData', TRUE)
+      return(NULL)
+    }
   }
   
   dataset <- reactiveValues()
   
   observeEvent(c(input$datasource, input$sheetPicker), {
-    dataset$data.loaded <- req(read.data((input$datasource)$datapath)) %>% text_parse
+    data.loaded <- read.data(req((input$datasource)$datapath), fileInfo) 
+    if (!is.null(data.loaded)) dataset$data.loaded <- data.loaded %>% text_parse
   })
   
-  observe({
+  observeEvent(c(dataset$data.loaded, dataset$data.result), {
     dataset$shownData <- if (!isTRUE(isTRUE(input$showOriginal)) & is.data.frame(dataset$data.result)) 
       dataset$data.result
-    else 
+    else
       dataset$data.loaded %>%
     cbind("<span style='color:grey; font-style:italic; font-weight:light'>(index)</span>" = 1:nrow(req(dataset$data.loaded)), .)
   })
@@ -85,7 +106,7 @@ shinyServer(function(input, output, session) {
   cols.state <- reactiveVal()
   data.keys <- reactiveVal()
   
-  observe({
+  observeEvent(dataset$data.loaded, {
     req(dataset$data.loaded)
     data.cols(colnames(dataset$data.loaded))
     cols.state(data.cols())
@@ -150,6 +171,26 @@ shinyServer(function(input, output, session) {
                   div(style='display:none', "...")
                 )
               ),
+              tags$li(
+                div(
+                  downloadLink(outputId = 'saveSettings',
+                                 label = 'Save Settings',
+                                 width = '100%'
+                                 ),
+                  class = 'menu-button'
+                )
+              ),
+              tags$li(
+                div(
+                  fileInput(inputId = 'loadSettings',
+                            label = 'Load Settings',
+                            width = '100%'
+                            ),
+                  p('Load Settings',
+                    id = 'load-settings-btn'),
+                  class = 'menu-button'
+                )
+              ),
               tags$li(class = if (!length(data.keys())) 'disabled',
                       div('Set key variable', id = 'set-key-var'),
                       tags$ul(
@@ -203,6 +244,34 @@ shinyServer(function(input, output, session) {
     session$sendCustomMessage('toggleCol', list(col.changeList))
     cols.state(shownColumns)
   })
+  
+  output$actionCheckBar <- renderUI(
+    div (
+      actionButton(inputId = 'all_action', label = 'Do All Check', width = '110px'),
+      div (
+        actionButton(inputId = 'msd_action', label = 'Missing Check', width = '120px'),
+        actionButton(inputId = 'did_action', label = 'Redundancy Check', width = '150px'),
+        actionButton(inputId = 'outl_action', label = 'Outliers Check', width = '120px'),
+        actionButton(inputId = 'lnr_action', label = 'Loners Check', width = '120px'),
+        actionButton(inputId = 'bin_action', label = 'Binary Check', width = '120px'),
+        actionButton(inputId = 'wsp_action', label = 'Whitespaces Check', width = '150px'),
+        actionButton(inputId = 'spl_action', label = 'Spelling Check', width = '130px'),
+        class = 'each-action-holder'
+      ),
+      class = 'actionBar'
+    )
+  )
+  
+  output$actionDictBar <- renderUI(
+    div(
+      div(
+        actionButton(inputId = 'dictCheck_action', label = 'Do this Check', width = '120px'),
+        downloadButton(outputId = 'dictCreate_action', label = 'Save Dictionary', width = '200px'),
+        class = 'each-action-holder'
+      ),
+      class = 'actionBar'
+    )
+  )
   
   ## Get methods for data #####
   output$methodsNav <- renderUI(
@@ -312,9 +381,11 @@ shinyServer(function(input, output, session) {
              class = 'instr-holder'),
       column(7,
              uiOutput('msd_log'),
-             class = 'log-holder')
+             class = 'log-holder',
+             id = 'msd-log-holder')
     )
   )
+  
   
   output$msd_options <- 
     renderUI(
@@ -352,7 +423,8 @@ shinyServer(function(input, output, session) {
              class = 'instr-holder'),
       column(7,
              uiOutput('outl_log'),
-             class = 'log-holder')
+             class = 'log-holder',
+             id = 'outl-log-holder')
     )
   )
   
@@ -391,12 +463,12 @@ shinyServer(function(input, output, session) {
           condition = 'input.outl_model == "adjusted"',
           fluidRow(
             column(6,
-                   textInput(inputId = 'outl_skewA',
+                   numericInput(inputId = 'outl_skewA',
                              label = 'Skew Param a',
                              value = -4,
                              width = '100%')),
             column(6,
-                   textInput(inputId = 'outl_skewB',
+                   numericInput(inputId = 'outl_skewB',
                              label = 'Skew Param b',
                              value = 3,
                              width = '100%'))
@@ -465,7 +537,8 @@ shinyServer(function(input, output, session) {
              class = 'instr-holder'),
       column(7,
              uiOutput('lnr_log'),
-             class = 'log-holder')
+             class = 'log-holder',
+             id = 'lnr-log-holder')
     )
   )
   
@@ -494,11 +567,12 @@ shinyServer(function(input, output, session) {
                      inputColor = "#428BCA"
                    )),
             column(8,
-                   textInput(
+                   numericInput(
                      inputId = 'lnr_threshold',
                      label = 'Max number of observation for loners',
                      value = 5,
-                     placeholder = '(min: 1, default: 5)',
+                     min = 1,
+                     step = 1,
                      width = '100%'
                    ),
                    materialSwitch(
@@ -521,9 +595,16 @@ shinyServer(function(input, output, session) {
                                selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), "loners", accept.dateTime = isolate(input$lnr_dateAsFactor))))])
   })
   
+  observeEvent(input$lnr_threshold, {
+    if (!is.numeric(input$lnr_threshold))
+      updateNumericInput(session = session,
+                         inputId = 'lnr_threshold',
+                         value = round(input$lnr_threshold, digits = 0))
+  })
+  
   observeEvent(input$lnr_subset, {
     req(dataset$data.loaded)
-    subset <- isolate(input$lnr_subset)
+    subset <- input$lnr_subset
     if (!is.null(subset)) if (any(intelliType(dataset$data.loaded[subset]) == 'dateTime'))
       updateMaterialSwitch(session = session,
                            inputId = 'lnr_dateAsFactor',
@@ -551,7 +632,8 @@ shinyServer(function(input, output, session) {
              class = 'instr-holder'),
       column(7,
              uiOutput('bin_log'),
-             class = 'log-holder')
+             class = 'log-holder',
+             id = 'bin-log-holder')
     )
   )
   
@@ -607,7 +689,8 @@ shinyServer(function(input, output, session) {
              class = 'instr-holder'),
       column(7,
              uiOutput('wsp_log'),
-             class = 'log-holder')
+             class = 'log-holder',
+             id = 'wsp-log-holder')
     )
   )
   
@@ -657,7 +740,8 @@ shinyServer(function(input, output, session) {
              class = 'instr-holder'),
       column(7,
              uiOutput('spl_log'),
-             class = 'log-holder')
+             class = 'log-holder',
+             id = 'spl-log-holder')
     )
   )
   
@@ -713,36 +797,73 @@ shinyServer(function(input, output, session) {
              class = 'instr-holder'),
       column(7,
              uiOutput('did_log'),
-             class = 'log-holder')
+             class = 'log-holder',
+             id = 'did-log-holder')
     )
   )
   
   output$did_options <- 
     renderUI(
       div(
-        awesomeCheckboxGroup(inputId = "did_subset", 
-                             label = "Select variables to check (ID variable excluded)", 
-                             choices = data.cols(), 
-                             selected = data.cols(), 
-                             inline = TRUE, status = "info"),
+        fluidRow(
+          column(4,
+                 knobInput(
+                   inputId = "did_upLimit",
+                   label = "Upper Limit",
+                   value = 50,
+                   thickness = 0.1,
+                   min = 20,
+                   max = 100,
+                   step = 5,
+                   displayPrevious = TRUE, 
+                   width = 100,
+                   height = 100,
+                   lineCap = "round",
+                   fgColor = "#428BCA",
+                   inputColor = "#428BCA"
+                 )),
+          column(8,
+                 pickerInput(inputId = 'did_v',
+                             label = 'Base variable',
+                             choices = data.cols(),
+                             options = pickerOptions(dropupAuto = FALSE, 
+                                                     liveSearch = TRUE, liveSearchNormalize = TRUE,
+                                                     width = '100%',
+                                                     size = 6),
+                             width = '100%'),
+                 numericInput(inputId = 'did_repNo',
+                              label = 'Number of observation per ID',
+                              value = 1,
+                              min = 1,
+                              step = 1,
+                              width = '100%')
+                 ),
+                 
         id = 'spl-args-holder'
-      )
+        ))
     )
   
   observe({
     updateMaterialSwitch(session = session,
                          inputId = 'did_enabled',
-                         value = if (length(input$did_subset)) TRUE else FALSE)
+                         value = if (length(input$did_v)) TRUE else FALSE)
+    if (!is.integer(input$did_repNo))
+      if (!is.null(input$did_repNo)) 
+        updateNumericInput(session = session,
+                           inputId = 'did_repNo',
+                           value = round(x = input$did_repNo, digits = 0))
+    if (isTRUE(input$did_repNo < 1))
+      updateNumericInput(session = session,
+                         inputId = 'did_repNo',
+                         value = 1)
   })
   
-  observe({
-    req(input$keyVariable)
-    if (length(input$keyVariable))
-      updateAwesomeCheckboxGroup(session = session,
-                                 inputId = 'did_subset',
-                                 choices =  data.cols()[data.cols() != input$keyVariable], 
-                                 selected = data.cols()[data.cols() != input$keyVariable], 
-                                 inline = TRUE, status = "info")
+  observeEvent(input$keyVariable,{
+    if (!is.null(input$keyVariable))
+      updatePickerInput(session = session, 
+                        inputId = 'did_v',
+                        choices = data.cols()[data.cols() != input$keyVariable])
+    
   })
   
   output$did_instr <- renderUI(HTML(instr$spl_instruction))
@@ -761,7 +882,8 @@ shinyServer(function(input, output, session) {
              class = 'instr-holder'),
       column(7,
              uiOutput('dictCheck_log'),
-             class = 'log-holder')
+             class = 'log-holder',
+             id = 'dictCheck-log-holder')
     )
   )
     
@@ -779,12 +901,8 @@ shinyServer(function(input, output, session) {
                            width = '100%')
                  ),
           column(5,
-                 switchInput(inputId = "plot", value = FALSE, label = 'Plotting' , size = 'normal', width = '100%'))
+                 switchInput(inputId = "dictCheck_plot", value = FALSE, label = 'Plotting' , size = 'normal', width = '100%'))
         ),
-        
-        actionButton("check", "Check data"),
-        textOutput("out", container = span),
-        
         id = 'dict-check-args-holder'
       )
     )
@@ -795,17 +913,9 @@ shinyServer(function(input, output, session) {
   
   ### Dictionary Create ####
   output$dictCreate <- renderUI(
-    fluidRow(
-      column(8,
-             uiOutput('dictCreate_options'),
-             class = 'arg-holder'),
-      column(4,
-             uiOutput('dictCreate_instr'),
-             class = 'instr-holder'),
-      column(7,
-             uiOutput('dictCreate_log'),
-             class = 'log-holder')
-    )
+      div(uiOutput('dictCreate_options'),
+          class = 'arg-holder'
+          )
   )
   
   output$dictCreate_options <- 
@@ -817,24 +927,310 @@ shinyServer(function(input, output, session) {
       )
     )
   
-  observe({
-    if (is.data.frame(dataset$data.loaded))
-      dataset$data.defTable <- cbind(varname = data.cols(), label = "", type = "", 
-                                     unit = "", value = "", levels = "", def = "", missing = "")
+  observeEvent(dataset$data.loaded,{
+    if (is.data.frame(dataset$data.loaded)){
+      
+      data <- dataset$data.loaded
+      dataset$intelliType <- intelliType(data, threshold = 0.8)
+      type <- sapply(seq_along(dataset$intelliType),
+                     function(i) {
+                       iType <- dataset$intelliType[[i]]
+                       cType <- sapply(data.cols(), function(col) class(data[[col]]), USE.NAMES = FALSE)
+                       out <- 
+                         if (is.null(iType)) ''
+                         else if ('key' %in% iType) {
+                          if ('numeric' %in% iType) 'numeric' else 'character'
+                         }
+                         else switch(iType[length(iType)],
+                                     'lang' = 
+                                       if (!any(grepl(',', data[[i]])) &
+                                           sum(grepl('\\s',  data[[i]], perl = TRUE)) < 2 &
+                                           length(unique(na.blank.omit(data[[i]]))) < 20) 'factor' else 'character',
+                                     'other' = 
+                                       if (!any(grepl(',', data[[i]])) &
+                                           sum(grepl('\\s',  data[[i]], perl = TRUE)) < 2 &
+                                           length(unique(na.blank.omit(data[[i]]))) < 20) 'factor' else 'character',
+                                     'numeric' = 
+                                       if (length(unique(na.omit(data[[i]]))) <= 2 & 
+                                           all(na.omit(data[[i]]) == floor(na.omit(data[[i]]))) &
+                                           all(na.omit(data[[i]]) <= 10))
+                                         'factor' 
+                                       else 'numeric',
+                                     'dateTime' = 'dateTime',
+                                     'binary' = 'factor')
+                       
+                     }, USE.NAMES = FALSE)
+      
+      values <- sapply(seq_along(type),
+                                function(i) {
+                                  type = type[i]
+                                  
+                                  if (type == 'numeric'){
+                                    min = min(na.omit(data[[i]]))
+                                    max = max(na.omit(data[[i]]))
+                                    if (isTRUE(min != max)) paste0('[', min, ', ', max, ']')
+                                    else min
+                                  } 
+                                  else {
+                                    if (type == 'factor'){
+                                      val = sort(unique(as.character(na.blank.omit(as.character(data[[i]])))))
+                                      if (length(val) >  1) paste0('{', toString(val), '}')
+                                      else val
+                                    } 
+                                    else ''
+                                  }
+                                }, USE.NAMES = FALSE)
+      missing <- rep(NA, length(type))
+      dataset$defTable <- 
+        cbind(varName = data.cols(), label = "", type = type, 
+              unit = "", values = values, rules = "", missing = missing)
+      row.names(dataset$defTable) <- NULL
+    }
   })
   
   output$defTable <- renderRHandsontable(
-    rhandsontable(req(dataset$data.defTable), stretchH = "all") %>%
-      hot_cols(fixedColumnsLeft = 1) %>%
-      hot_rows(fixedRowsTop = 1)
+    rhandsontable(dataset$defTable, stretchH = "all", search = TRUE) %>%
+      hot_cols(fixedColumnsLeft = 1, colWidths = c('','','','', '100px', '', '')) %>%
+      hot_rows(rowHeights = rep('24px', 7)) %>%
+      hot_col(col = 'varName', readOnly = TRUE) %>%
+      hot_col(col = 'type', type = 'dropdown', source = c('numeric', 'character', 'dateTime', 'factor'), allowInvalid = FALSE) %>%
+      hot_col(col = 'values', placeholder = '{a, b, c} or [min, max]') %>%
+      hot_col(col = 'rules', placeholder = '=') %>%
+      hot_col(col = 'missing', placeholder = 'NA')
   )
   
-  output$dictCreate_instr <- renderUI(HTML(instr$spl_instruction))
-  output$dictCreate_log <- renderUI(div('lorem ipsum'))
   
-  #EOF  
+  ## Save and load settings ----
   
-  set_always_on(c('dataOptions', 'methodsNav', 'dictNav',
+  output$saveSettings <- 
+    downloadHandler(
+      filename = function() {
+        paste0(fileInfo$name, '-', Sys.Date(), '-', 'settings.json')
+      },
+      content = function(filePath) write_settings(data.cols(), input, filePath)
+    )
+  
+  settings <- reactiveVal()
+  observeEvent(input$loadSettings, {
+     settings(read_settings(input$loadSettings$datapath))
+    
+    #check whether data is matched
+    if (!identical(data.cols(), settings()$varNames)) 
+      sendSweetAlert(session = session,
+                     title = 'Data Mismatch!',
+                     text = 'Variable lists in loaded dataset and in loaded preset are unmatched.',
+                     type = 'error',
+                     closeOnClickOutside = TRUE)
+    else {
+      
+      settingList <- names(settings())
+      
+      #Get some quick list
+      enabledList <- grep('_enabled', settingList, value = TRUE)
+      subsetList <- grep('_subset', settingList, value = TRUE)
+      upLimitList <- grep('_upLimit', settingList, value = TRUE)
+      
+      materialSwitchList <- c('msd_fix', 
+                              'outl_acceptNegative', 'outl_acceptZero', 
+                              'lnr_dateAsFactor', 
+                              'wsp_whitespaces', 'wsp_doubleWSP',
+                              'dictCheck_plot',
+                              enabledList)
+      textInputList <- c('outl_fnLower', 'outl_fnUpper', 'outl_params')
+      numericInputList <- c('did_repNo', 'outl_skewA', 'outl_skewB', 'lnr_threshold')
+      pickerInputList <- c('outl_model', 'did_v')
+      
+      for (method in materialSwitchList)
+        updateMaterialSwitch(session,
+                             inputId = method,
+                             value = settings()[[method]])
+      
+      for (method in subsetList)
+        updateAwesomeCheckboxGroup(session, 
+                                   inputId = method,
+                                   selected = settings()[[method]])
+      for (method in upLimitList)
+        updateKnobInput(session,
+                        inputId = method,
+                        value = settings()[[method]])
+      
+      for (method in textInputList)
+        updateTextInput(session,
+                        inputId = method,
+                        value = settings()[[method]])
+      for (method in numericInputList)
+        updateNumericInput(session,
+                           inputId = method,
+                           value = settings()[[method]])
+      for (method in pickerInputList)
+        updatePickerInput(session,
+                          inputId = method,
+                          selected = settings()[[method]])
+    }
+    
+  })
+    
+  
+  ## Apply the check ----
+  
+  renderLog <- function(chkRes, vars = names(chkRes$problem)) {
+    if (is.null(vars)) vars <- deparse(substitute(chkRes))
+    problem <- chkRes$problem
+    problemValues <- chkRes$problemValues
+    problemIndexes <- chkRes$problemIndexes
+    hasKey <- length(data.keys())
+    if (hasKey) problemKeys <- chkRes$problemKeys
+    print(is_true(names(chkRes$message) == 'notice'))
+    message <- chkRes$message[!is_true(names(chkRes$message) == 'notice')]
+    View(chkRes)
+    
+    
+    out <- list(
+      tags$table(
+        class = 'chk-logTable',
+        tags$thead(
+          tags$th('Variable'),
+          tags$th('Suspected Indexes'),
+          if (hasKey) tags$th('Suspected IDs'),
+          tags$th('Suspected Values')
+        ),
+        lapply(seq_along(vars),
+               function(i){
+                 var <- vars[[i]]
+                 if (problem[[i]]) {
+                   print(problemIndexes[i])
+                   out <- list(var, 
+                               toString(problemIndexes[[i]]), 
+                               if (hasKey) toString(problemKeys[[i]]), 
+                               toString(problemValues[[i]])
+                   )} else {
+                     out <- list(var, message[[i]])
+                   }
+                 return(do.call(tags$tr, 
+                                if (!problem[[i]]) list(tags$td(out[[1]]), tags$td(out[[2]], colspan = 3))
+                                else lapply(out, tags$td)))
+               })
+      )
+    )
+    return(out)
+  }
+  
+  chkRes <- reactiveValues()
+  
+  observeEvent(input$msd_action, {
+    
+    if (length(input$msd_subset))
+      tryCatch({
+        chkRes$msd_result <- missing_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
+                                          subset = input$msd_subset, fix = input$msd_fix)
+        
+        output$msd_log <- renderUI(renderLog(chkRes$msd_result))
+        session$sendCustomMessage('logOn', 'msd')
+      }, error = 
+        function(e) {
+          # Do something here
+        })
+  })
+  
+  observeEvent(input$did_action, {
+    
+    if (length(input$did_v))
+      tryCatch({
+        chkRes$did_result <- redundancy_check(v = input$did_v, repNo = input$did_repNo, upLimit = input$did_upLimit)
+        
+        output$did_log <- renderUI(renderLog(chkRes$did_result, vars = input$did_v))
+        session$sendCustomMessage('logOn', 'did')
+      }, error = 
+        function(e) {
+          # Do something here
+        })
+  })
+  
+  observeEvent(input$outl_action, {
+    
+    if (length(input$outl_subset))
+      tryCatch({
+        chkRes$outl_result <- outliers_scan(data = dataset$data.loaded, keyVar = input$keyVariable, subset = input$outl_subset,
+                                            model = input$outl_model, skewParam = list(a = input$outl_skewA, b = input$outl_skewB),
+                                            customFn = setCustomFn(fn = paste(input$outl_fnLower, input$outl_fnUpper, sep = ';'),
+                                                                   param = input$outl_params),
+                                            accept.negative = input$outl_acceptNegative, accept.zero = input$outl_acceptZero)
+        
+        output$outl_log <- renderUI(renderLog(chkRes$outl_result))
+        session$sendCustomMessage('logOn', 'outl')
+      }, error = 
+        function(e) {
+          # Do something here
+        })
+  })
+  
+  
+  observeEvent(input$lnr_action, {
+    
+    if (length(input$lnr_subset))
+      tryCatch({
+        chkRes$lnr_result <- loners_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
+                                         subset = input$lnr_subset, threshold = input$lnr_threshold,
+                                         upLimit = input$lnr_upLimit, accept.dateTime = input$lnr_dateAsFactor)
+        
+        output$lnr_log <- renderUI(renderLog(chkRes$lnr_result))
+        session$sendCustomMessage('logOn', 'lnr')
+      }, error = 
+        function(e) {
+          # Do something here
+        })
+  })
+  
+  
+  observeEvent(input$bin_action, {
+    
+    if (length(input$bin_subset))
+      tryCatch({
+        chkRes$bin_result <- binary_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
+                                         subset = input$bin_subset, upLimit = input$bin_upLimit)
+        
+        output$bin_log <- renderUI(renderLog(chkRes$bin_result))
+        session$sendCustomMessage('logOn', 'bin')
+      }, error = 
+        function(e) {
+          # Do something here
+        })
+  })
+  
+  observeEvent(input$wsp_action, {
+    
+    if (length(input$wsp_subset))
+      tryCatch({
+        chkRes$wsp_result <- whitespaces_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
+                                              subset = input$wsp_subset)
+        chkRes$dblWSP_result <- doubleWSP_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
+                                               subset = input$wsp_subset)
+        
+        output$wsp_log <- renderUI(div(
+          tags$section(p('Leading and trailing whitespaces'),
+                       renderLog(chkRes$wsp_result)),
+          tags$section(p('Double whitespaces'),
+                       renderLog(chkRes$dblWSP_result))
+          ))
+        session$sendCustomMessage('logOn', 'wsp')
+      }, error = 
+        function(e) {
+          # Do something here
+        })
+  })
+  
+  output$dictCreate_action <- 
+    downloadHandler(
+      filename = function() {
+        paste0(fileInfo$name, '-DataDictionary.csv')
+      },
+      content = function(filePath) write.csv(hot_to_r(input$defTable), filePath)
+    )
+  
+  #EOF 
+  
+  set_always_on(c('dataOptions', 'actionCheckBar','actionDictBar',
+                  'methodsNav', 'dictNav', 'methodsToggle',
                   'msd_all', 'msd_options', 'msd_log', 'msd_instr', 
                   'outl_all', 'outl_options', 'outl_log', 'outl_instr',
                   'lnr_all', 'lnr_options', 'lnr_log', 'lnr_instr',
@@ -842,8 +1238,7 @@ shinyServer(function(input, output, session) {
                   'wsp_all', 'wsp_options', 'wsp_log', 'wsp_instr',
                   'spl_all', 'spl_options', 'spl_log', 'spl_instr',
                   'did_all', 'did_options', 'did_log', 'did_instr',
-                  'dictCheck', 'dictCheck_options','dictCheck_log', 'dictCheck_instr', 
-                  'dictCreate', 'dictCreate_options','dictCreate_log', 'dictCreate_instr'
+                  'dictCheck', 'dictCheck_options','dictCheck_log', 'dictCheck_instr'
   ),
   output = output)
 })

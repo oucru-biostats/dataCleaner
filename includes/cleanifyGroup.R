@@ -1,5 +1,17 @@
 # Useful functions ######
 
+## Vectorize version of isTRUE and isFALSE
+is_true <- function(x)
+  if (length(x)) Vectorize(isTRUE, 'x')(x) else FALSE
+is_false <- function(x)
+  if (length(x)) Vectorize(isFALSE, 'x')(x) else FALSE
+iVectorize <- function(fun, ...){
+  args <- list(...)
+  if(length(names(args))) do.call(Vectorize(fun, names(args)), args)
+  else do.call(Vectorize(fun), args)
+}
+  
+
 ## Generate a list of names in list x
 names_list <- function(x){
   names <- lapply(seq_along(x), function(i){
@@ -469,48 +481,51 @@ setCustomFn <- function(fn = NULL, param = NULL){
 intelliRep <- function(v, simplify = 1){
   if (!is.atomic(v)) stop('v should be an atomic vector.')
   
-  v.unique <- unique(v)
-  nRep <- sapply(v.unique, function(v.this) sum(v == v.this))
+  v.unique <- unique(na.omit(v))
+  nRep <- sapply(v.unique, function(v.this) sum(na.omit(v) == v.this))
   nRep.unique <- unique(nRep)
   if (simplify) return(nRep.unique)
   else return(nRep)
 }
 
-intelliIsKey <- function(v, threshold = 1){
-  deltaL <- length(v) - length(unique(v))
-  is.unique <- deltaL < threshold
-  return(list(is.unique = is.unique, deltaL = deltaL))
+intelliIsKey <- function(v, threshold = 1, repNo = 1){
+  if (!is.atomic(v)) stop('v should be an atomic vector.')
+  vector.rep <- intelliRep(v)
+  is.key <- length(vector.rep) == 1 && (if (!is.null(repNo)) vector.rep[[1]] == repNo else TRUE)
+  deltaL <- length(v) %% length(unique(v))
+  is.key <- is.key & deltaL < threshold
+  return(list(is.key = is.key, deltaL = deltaL))
 }
 
-intelliKey <- function(df, threshold = 1, showAll = FALSE){
+intelliKey <- function(df, threshold = 1, repNo = 1, showAll = FALSE){
   df <- as.data.frame(df)
   if (ncol(df) < 2) return(NULL)
   vars <- colnames(df)
   
-  are.Keys <- lapply(as.list(vars), function(var) return(intelliIsKey(df[[var]], threshold = threshold)))
-  are.unique <- sapply(are.Keys, function(is.Key) return(is.Key$is.unique))
+  are.Keys <- lapply(as.list(vars), function(var) return(intelliIsKey(df[[var]], threshold = threshold, repNo = repNo)))
+  are.keys <- sapply(are.Keys, function(is.Key) return(is.Key$is.key))
   deltaL <- sapply(are.Keys, function(is.Key) return(is.Key$deltaL))
   
-  if (any(are.unique)){
+  if (any(are.keys)){
     if (showAll) {
-      if (any(deltaL[are.unique] > 0)) 
-        warning(paste(vars[are.unique][deltaL[are.unique] > 0], 'is treated as a key but has', deltaL[are.unique][deltaL[are.unique] > 0], 'repeated observations \n'))
-      return(vars[are.unique]) 
+      if (any(deltaL[are.keys] > 0)) 
+        warning(paste(vars[are.keys][deltaL[are.keys] > 0], 'is treated as a key but has', deltaL[are.keys][deltaL[are.keys] > 0], 'repeated observations \n'))
+      return(vars[are.keys]) 
     } else {
-      if (deltaL[are.unique][1] > 0)
-        warning(paste(vars[are.unique][1], 'is treated as a key but has', deltaL[are.unique][1], 'repeated observations \n'))  
-      return(vars[are.unique][[1]])
+      if (deltaL[are.keys][1] > 0)
+        warning(paste(vars[are.keys][1], 'is treated as a key but has', deltaL[are.keys][1], 'repeated observations \n'))  
+      return(vars[are.keys][[1]])
     }
   } else return(NULL)
 }
 
-intelliType <- function(df){
+intelliType <- function(df, threshold = 1){
   ##### Take var names #####
   df <- as.data.frame(df)
   vars <- colnames(df)
   
   ##### Set regex patterns #####
-  pattern.numeric <- '(^-?|^)(\\d+\\.?$|\\d?\\.\\d+$)'
+  pattern.numeric <- '(^-?|^)((\\d+\\.?$)|(\\d*\\.\\d+$))'
   pattern.lang <- '^[A-Za-z\\s(),.!?\\\\/&\\_\\-]+$'
   pattern.dateTime <- '((\\s|^)((([12]\\d{3}|\\d{2})[-\\/.](0?[1-9]|[12]\\d|3[01])[-\\/.](0?[1-9]|[12]\\d|3[01]))|((0?[1-9]|[12]\\d|3[01])[-\\/.](0?[1-9]|[12]\\d|3[01])[-\\/.]([12]\\d{3}|\\d{2}))))|((\\s|^)([0-2]?\\d)\\s?[:]\\s?\\d{1,2})'
   
@@ -519,9 +534,12 @@ intelliType <- function(df){
     this <- df[var]
     this.noNA <- na.blank.omit(this)
     if (length(this.noNA)){
-      is.num <- all(grepl(pattern.numeric, this.noNA, perl = TRUE))
-      is.lang <- all(grepl(pattern.lang, this.noNA, perl = TRUE))
-      is.dateTime <- all(grepl(pattern.dateTime, this.noNA, perl = TRUE))
+      is.num <- grepl(pattern.numeric, this.noNA, perl = TRUE)
+      is.num <- sum(is.num)/length(is.num) >= threshold
+      is.lang <- grepl(pattern.lang, this.noNA, perl = TRUE)
+      is.lang <- sum(is.lang)/length(is.lang) >= threshold
+      is.dateTime <- grepl(pattern.dateTime, this.noNA, perl = TRUE)
+      is.dateTime <- sum(is.dateTime)/length(is.dateTime) >= threshold
       out <- c('numeric', 'lang', 'dateTime')[c(is.num, is.lang, is.dateTime)]
       if (!length(out)) out <- 'other'
     } else out <- NULL
@@ -543,7 +561,7 @@ intelliType <- function(df){
 
 intelliIsCompatible <- function(v = NULL, v.type = NULL, test = c('whitespaces', 'doubleWSP', 'outliers', 'loners', 'binary', 'missing', 'spelling'), accept.dateTime = FALSE){
   test <- match.arg(test)
-  if (is.null(v.type)) v.type <- c(intelliType(v), 'key'[intelliIsKey(v)$is.unique])
+  if (is.null(v.type)) v.type <- c(intelliType(v), 'key'[intelliIsKey(v)$is.key])
   if (is.null(v.type) && is.null(v)) stop('Either v or v.type should be defined.')
   
   is.compatible <- switch(test, 
@@ -551,7 +569,7 @@ intelliIsCompatible <- function(v = NULL, v.type = NULL, test = c('whitespaces',
                           'doubleWSP' =  TRUE,
                           'outliers' = 'numeric' %in% v.type,
                           'loners' = (!('dateTime' %in% v.type) | accept.dateTime) & !('key' %in% v.type),
-                          'binary' = !'key' %in% v.type,
+                          'binary' = !'key' %in% v.type & if (!missing(v)) length(unique(v)) < 5 else TRUE,
                           'missing' = TRUE,
                           'spelling' = 'lang' %in% v.type
                           )
@@ -1245,6 +1263,9 @@ whitespaces_scan <- function(data, keyVar = intelliKey(data), subset = names(dat
   if (any(is.na(silent), !length(silent))) silent <- FALSE
   if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
   
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- cbind(index = 1:nrow(data), data)
+  
   
   #### Preparation of Output ####
   problem <- list()
@@ -1299,6 +1320,9 @@ doubleWSP_scan <- function(data, keyVar = intelliKey(data), subset = names(data)
   if (any(is.na(silent), is.null(silent))) silent <- FALSE
   if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
   
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- cbind(index = 1:nrow(data), data)
+  
   #### Preparation of Output ####
   problem <- list()
   problemValues <- list()
@@ -1346,6 +1370,9 @@ outliers_scan <- function(data, keyVar = intelliKey(data), subset = names(data),
   silent <- as.logical(silent)
   if (any(is.na(silent), is.null(silent))) silent <- FALSE
   if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
+  
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- cbind(index = 1:nrow(data), data)
   
   model <- match.arg(model)
   
@@ -1449,6 +1476,9 @@ loners_scan <- function(data, keyVar = intelliKey(data), subset = names(data), a
   if (any(is.na(silent), is.null(silent))) silent <- FALSE
   if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
   
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- cbind(index = 1:nrow(data), data)
+  
   ### Preparation of Output ####
   problem <- list()
   problemValues <- list()
@@ -1511,6 +1541,9 @@ binary_scan <- function(data, keyVar = intelliKey(data), subset = names(data), u
   if (any(is.na(silent), is.null(silent))) silent <- FALSE
   if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
   
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- cbind(index = 1:nrow(data), data)
+  
   ### Preparation of Output ####
   problem <- list()
   problemValues <- list()
@@ -1571,6 +1604,9 @@ missing_scan <- function(data, keyVar = intelliKey(data), subset = names(data), 
   if (any(is.na(silent), is.null(silent))) silent <- FALSE
   if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
   
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- cbind(index = 1:nrow(data), data)
+  
   ### Preparation of Output ####
   problem <- list()
   problemValues <- list()
@@ -1622,6 +1658,9 @@ spelling_scan <- function(data, keyVar = intelliKey(data), subset = names(data),
   silent <- as.logical(silent)
   if (any(is.na(silent), is.null(silent))) silent <- FALSE
   if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
+  
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- cbind(index = 1:nrow(data), data)
   
   ### Preparation of Output ####
   problem <- list()
@@ -1687,6 +1726,8 @@ cleanify <- function(data, keyVar = intelliKey(data), checks = c('missing', 'whi
   if (any(is.na(silent), is.null(silent))) silent <- FALSE
   if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
   
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- mutate(data, index = 1:nrow(data))
   
   #### Get ouput ####
   out <- list()

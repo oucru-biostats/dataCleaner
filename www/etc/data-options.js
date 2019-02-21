@@ -44,6 +44,14 @@ $('#dataOptions .awesome-checbox').on('click','.tippy-content', function(e){
     $(this).trigger('contextmenu');
 });
 
+$('#dataOptions #save-settings-btn').click(function(){
+    $(this).parent().find('#saveSettings').click();
+});
+
+$('#dataOptions #load-settings-btn').click(function(){
+    $(this).parent().find('label.input-group-btn').click();
+})
+
 /* R listener for dataoptions */
 
 Shiny.addCustomMessageHandler('toggleCol', function(changeList){

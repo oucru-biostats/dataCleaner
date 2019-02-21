@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css?family=Open+Sans|Roboto+Mono&subset=latin-ext");
 @font-face {
   font-family: 'banschrift-online';
   src: url("fonts/bahnschrift.ttf");
@@ -58,6 +59,36 @@
   }
 }
 
+@-webkit-keyframes shadowSurge {
+  0% {
+    -webkit-box-shadow: 0px 0px 0px var(--color-shadow);
+            box-shadow: 0px 0px 0px var(--color-shadow);
+    background-color: transparent;
+    opacity: 0;
+  }
+  100% {
+    -webkit-box-shadow: 0px 0px 10px var(--color-shadow);
+            box-shadow: 0px 0px 10px var(--color-shadow);
+    background-color: #fff;
+    opacity: 1;
+  }
+}
+
+@keyframes shadowSurge {
+  0% {
+    -webkit-box-shadow: 0px 0px 0px var(--color-shadow);
+            box-shadow: 0px 0px 0px var(--color-shadow);
+    background-color: transparent;
+    opacity: 0;
+  }
+  100% {
+    -webkit-box-shadow: 0px 0px 10px var(--color-shadow);
+            box-shadow: 0px 0px 10px var(--color-shadow);
+    background-color: #fff;
+    opacity: 1;
+  }
+}
+
 :root {
   --barLeft: 0;
   --barRight: auto;
@@ -81,6 +112,7 @@
      -moz-user-select: none !important;
       -ms-user-select: none !important;
           user-select: none !important;
+  pointer-events: none !important;
 }
 
 .lds-roller {
@@ -192,7 +224,7 @@
 }
 
 body {
-  font-family: 'FiraSans', 'Bahnschrift','banschrift-online','Franklin Gothic Medium', Arial, sans-serif;
+  font-family: 'Open Sans', 'FiraSans', 'Bahnschrift','banschrift-online','Franklin Gothic Medium', Arial, sans-serif;
   transition: all 0.3s ease;
   -ms-transition: all 0.3s ease;
   -moz-transition: all 0.3s ease;
@@ -300,6 +332,21 @@ body #foreground #text .lds-roller {
   top: 30px;
 }
 
+.actionBar {
+  width: 100%;
+  height: 30px;
+}
+
+.actionBar .btn {
+  float: right;
+  margin: 10px 10px 0 0;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.each-action-holder .actionBar .btn {
+  float: right;
+}
+
 #dict-check-args-holder #info_path {
   width: 100%;
 }
@@ -326,8 +373,22 @@ body #foreground #text .lds-roller {
   margin-top: 11px;
 }
 
-#dict-create-args-holder #defTable table.htCore tr td:nth-child(3) {
-  background: yellow;
+#dict-create-args-holder #defTable {
+  min-width: 700px;
+  height: calc(100vh - var(--grandTabTop) - 25px - 3vh);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#dict-create-args-holder #defTable .ht_master .wtHolder {
+  overflow: visible;
+}
+
+#dict-create-args-holder #defTable table.htCore {
+  width: 100%;
+  margin-right: 15px;
+  font-family: 'Roboto Mono', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 13px;
 }
 
 #data-input-holder {
@@ -369,11 +430,14 @@ body #foreground #text .lds-roller {
   width: 100%;
 }
 
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 1100px) {
   #data-input-holder #data-input:not(.fullWidth) div.input-group {
     width: 100%;
   }
   #data-input-holder #data-input:not(.fullWidth) div.input-group label.input-group-btn {
+    display: none;
+  }
+  #data-input-holder #data-input:not(.fullWidth) div.input-group span.btn {
     display: none;
   }
 }
@@ -420,18 +484,51 @@ body #foreground #text .lds-roller {
 #data-input-holder.center {
   float: none;
   clear: both;
-  max-width: 70%;
-  top: calc(50vh - 20px);
-  min-width: 300px;
+  top: calc(50vh - 120px);
   margin: auto;
+  padding: 15px;
   position: relative;
   display: block;
   margin-top: -50px;
+  width: 300px;
+  height: 300px;
   left: 0;
+  border-radius: 4px;
+  background-color: #fff;
+  -webkit-box-shadow: 0px 0px 10px var(--color-shadow);
+          box-shadow: 0px 0px 10px var(--color-shadow);
+  -webkit-animation: shadowSurge 0.5s ease-out;
+          animation: shadowSurge 0.5s ease-out;
+}
+
+#data-input-holder.center #header {
+  margin: 30px 0px;
+  width: 100%;
+  display: block;
+  font-size: 20px;
+}
+
+#data-input-holder.center #header em {
+  font-size: 1vmin;
+}
+
+#data-input-holder.center #data-input {
+  position: absolute;
+  width: calc(100% - 30px);
+  bottom: 0;
+}
+
+#data-input-holder.center #sheet-input {
+  opacity: 0;
+  pointer-events: none;
 }
 
 #data-input-holder.center .shiny-input-container:not(.shiny-input-container-inline) {
   width: 100%;
+}
+
+.handsontable td, .handsontable th {
+  text-overflow: ellipsis;
 }
 
 .navbar-default {
@@ -587,6 +684,14 @@ body #foreground #text .lds-roller {
 #dataOptions #dropdown-menu-datasetMenu > li {
   margin-left: 0 !important;
   margin-right: 0 !important;
+}
+
+#dataOptions #dropdown-menu-datasetMenu > li .menu-button div.form-group.shiny-input-container {
+  display: none;
+}
+
+#dataOptions #dropdown-menu-datasetMenu > li .menu-button p {
+  margin: 0;
 }
 
 #dataOptions #dropdown-menu-datasetMenu > li ul {
@@ -787,7 +892,6 @@ body #foreground #text .lds-roller {
   padding: 0px;
   z-index: 10;
   white-space: nowrap;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
 #dataset .form-control {
@@ -807,13 +911,23 @@ body #foreground #text .lds-roller {
   border-color: var(--color-inactive);
 }
 
-#dataset .dataTables_scrollBody thead td {
+#dataset .dataTables_scrollBody table {
+  font-family: 'Roboto Mono', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+}
+
+#dataset .dataTables_scrollBody table thead td {
   height: 0;
   overflow: hidden;
 }
 
 #dataset .dataTables_info {
   padding-left: 10px;
+}
+
+#dataset .dataTables_paginate.paging_simple_numbers {
+  position: relative;
+  z-index: 10;
 }
 
 #dataset .dataTables_filter {
@@ -910,7 +1024,7 @@ body #foreground #text .lds-roller {
 
 #methodsNav, #dictNav {
   cursor: default;
-  height: calc(97vh - var(--grandTabTop) - 1px);
+  height: calc(97vh - var(--grandTabTop) - 21px);
   transition: height ease 0.3s;
   -moz-transition: height ease 0.3s;
   -webkit-transition: height ease 0.3s;
@@ -950,11 +1064,12 @@ body #foreground #text .lds-roller {
 }
 
 #methodsNav .col-sm-9 .tab-content .tab-pane, #dictNav .col-sm-9 .tab-content .tab-pane {
-  height: calc(100vh - var(--grandTabTop) - 1px - 3vh);
+  height: calc(100vh - var(--grandTabTop) - 32px - 3vh);
   min-height: 304px;
-  overflow-x: hidden !important;
-  padding-right: 0;
-  padding-left: 15px;
+  overflow-x: auto !important;
+  padding-right: 0px;
+  padding-left: 5px;
+  padding-bottom: 15px;
 }
 
 #methodsNav .col-sm-9 .tab-content .tab-pane .row, #dictNav .col-sm-9 .tab-content .tab-pane .row {
@@ -1008,6 +1123,10 @@ body #foreground #text .lds-roller {
   }
 }
 
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .disabled, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder .disabled {
+  pointer-events: none;
+}
+
 @media only screen and (max-width: 767px) {
   #methodsNav .col-sm-9 .tab-content .tab-pane .row .arg-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .arg-holder {
     padding-left: 24px;
@@ -1015,27 +1134,113 @@ body #foreground #text .lds-roller {
 }
 
 #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder {
-  width: 0px;
-  display: none;
+  width: 0;
+  height: 0;
   position: absolute;
   top: 0;
   right: 0;
-  overflow-x: hidden;
+  overflow: hidden;
   z-index: 13;
-  background-color: blue;
-  transition: all 0.3s ease;
-  -ms-transition: all 0.3s ease;
-  -moz-transition: all 0.3s ease;
-  -webkit-transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.7);
+  transition: width 0.3s ease;
+  -ms-transition: width 0.3s ease;
+  -moz-transition: width 0.3s ease;
+  -webkit-transition: width 0.3s ease;
+  padding-left: 0;
 }
 
-#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder div, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder div {
-  width: 70vw;
+@supports ((-webkit-backdrop-filter: blur(7px)) or (backdrop-filter: blur(7px))) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder {
+    -webkit-backdrop-filter: blur(7px);
+            backdrop-filter: blur(7px);
+  }
+}
+
+@supports (-webkit-backdrop-filter: blur(7px)) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder {
+    -webkit-backdrop-filter: blur(7px);
+  }
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder div:nth-child(2), #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder div:nth-child(2) {
+  width: 100%;
+  padding-top: 15px;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable {
+  width: calc(100% - 54px);
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable thead, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable thead {
+  background-color: var(--color-inactive);
+  color: #fff;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable th, #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable td, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable th, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable td {
+  font-family: 'Roboto Mono', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  padding: 5px;
+  vertical-align: center;
+  text-align: center;
+  width: 28%;
+  max-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable th:first-child, #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable td:first-child, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable th:first-child, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable td:first-child {
+  text-align: left;
+  width: 16%;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable th .showAll, #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable td .showAll, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable th .showAll, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder table.chk-logTable td .showAll {
+  white-space: normal;
+  overflow: visible;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder .backBtn, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder .backBtn {
+  width: 44px;
+  height: 100%;
+  position: relative;
+  float: left;
+  top: 0;
+  left: 0;
+  margin-right: 10px;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  -ms-transition: all 0.3s ease;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder .backBtn::before, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder .backBtn::before {
+  content: url("img/back-button.svg");
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  position: absolute;
+  top: 15px;
+  left: 0;
+  padding-left: 10px;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder .backBtn:hover, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder .backBtn:hover {
+  background-color: #aaaaaa;
+}
+
+#methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder.show, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder.show {
+  display: block;
+  width: 90%;
+  overflow-y: auto;
+  -webkit-box-shadow: -1px 0px 5px var(--color-shadow);
+          box-shadow: -1px 0px 5px var(--color-shadow);
 }
 
 @media only screen and (max-width: 500px) {
   #methodsNav .col-sm-9 .tab-content .tab-pane, #dictNav .col-sm-9 .tab-content .tab-pane {
-    height: 40vh;
+    height: 60vh;
   }
 }
 
@@ -1118,6 +1323,7 @@ body #foreground #text .lds-roller {
     z-index: 12;
   }
   #methodsNav .col-sm-3 ul.nav-pills, #dictNav .col-sm-3 ul.nav-pills {
+    height: var(--contentHeight);
     background-color: #fff;
     transition: all 0.3s ease;
     -ms-transition: all 0.3s ease;
@@ -1180,6 +1386,20 @@ body #foreground #text .lds-roller {
 @media only screen and (min-width: 501px) and (max-width: 767px) {
   #dictNav .row .col-sm-3 ul.nav-pills li a {
     padding-left: 15px;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  #dictNav .row .col-sm-9 .col-sm-7 {
+    float: left;
+    width: 58.33333333%;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  #dictNav .row .col-sm-9 .col-sm-5 {
+    float: left;
+    width: 41.66666667%;
   }
 }
 
