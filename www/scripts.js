@@ -272,7 +272,7 @@ Shiny.addCustomMessageHandler('disabledMethod', disabled => disabled.map(value =
 Shiny.addCustomMessageHandler('logOn', id => {
     let logHolder = $(`#${id}-log-holder`);
     let argHolder = $(`#${id}_options`);
-    logHolder.height(logHolder.parent().height()).addClass('show', 300);
+    logHolder.height(Math.max(logHolder.parent().height(), $('.tab-pane.grand-tab-panel.active .tab-pane.active').height())).addClass('show', 300);
     // logHolder.addClass('show', 300)
     // setTimeout(logHolder.addClass('show', 300), 300);
     argHolder.addClass('disabled');

@@ -1073,48 +1073,6 @@ shinyServer(function(input, output, session) {
   
   ## Apply the check ----
   
-  renderLog <- function(chkRes, vars = names(chkRes$problem)) {
-    if (is.null(vars)) vars <- deparse(substitute(chkRes))
-    problem <- chkRes$problem
-    problemValues <- chkRes$problemValues
-    problemIndexes <- chkRes$problemIndexes
-    hasKey <- length(data.keys())
-    if (hasKey) problemKeys <- chkRes$problemKeys
-    print(is_true(names(chkRes$message) == 'notice'))
-    message <- chkRes$message[!is_true(names(chkRes$message) == 'notice')]
-    View(chkRes)
-    
-    
-    out <- list(
-      tags$table(
-        class = 'chk-logTable',
-        tags$thead(
-          tags$th('Variable'),
-          tags$th('Suspected Indexes'),
-          if (hasKey) tags$th('Suspected IDs'),
-          tags$th('Suspected Values')
-        ),
-        lapply(seq_along(vars),
-               function(i){
-                 var <- vars[[i]]
-                 if (problem[[i]]) {
-                   print(problemIndexes[i])
-                   out <- list(var, 
-                               toString(problemIndexes[[i]]), 
-                               if (hasKey) toString(problemKeys[[i]]), 
-                               toString(problemValues[[i]])
-                   )} else {
-                     out <- list(var, message[[i]])
-                   }
-                 return(do.call(tags$tr, 
-                                if (!problem[[i]]) list(tags$td(out[[1]]), tags$td(out[[2]], colspan = 3))
-                                else lapply(out, tags$td)))
-               })
-      )
-    )
-    return(out)
-  }
-  
   chkRes <- reactiveValues()
   
   observeEvent(input$msd_action, {
@@ -1213,6 +1171,21 @@ shinyServer(function(input, output, session) {
                        renderLog(chkRes$dblWSP_result))
           ))
         session$sendCustomMessage('logOn', 'wsp')
+      }, error = 
+        function(e) {
+          # Do something here
+        })
+  })
+  
+  observeEvent(input$spl_action, {
+    
+    if (length(input$spl_subset))
+      tryCatch({
+        chkRes$spl_result <- spelling_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
+                                           subset = input$spl_subset)
+        
+        output$wsp_log <- renderUI(renderLog(chkRes$spl_result))
+        session$sendCustomMessage('logOn', 'spl')
       }, error = 
         function(e) {
           # Do something here
