@@ -468,13 +468,16 @@ body{
         position: relative;
         display: block;
         margin-top: -50px;
+        max-width: 100%;
         width: 300px;
         height: 300px;
         left: 0;
         border-radius: 4px;
         background-color: #fff;
         box-shadow: 0px 0px 10px var(--color-shadow);
-        animation: shadowSurge 0.5s ease-out;
+        &.shadowSurge{
+            animation: shadowSurge 0.5s ease-out;
+        }
 
         #header{
             margin: 30px 0px;
@@ -1118,6 +1121,7 @@ body{
                     .log-holder{
                         width: 0;
                         height: 0;
+                        padding:0;
                         // height: calc(100vh - var(--grandTabTop) - 1px);
                         // height: calc(100vh - var(--grandTabTop) - 32px - 3vh);
                         // display:none;
@@ -1126,59 +1130,85 @@ body{
                         right: 0;
                         overflow: hidden;
                         z-index: 13;
-                        background-color: rgba(255, 255, 255, 0.7);
+                        background-color: rgb(255, 255, 255);
                         @supports (backdrop-filter: blur(7px)){
                             backdrop-filter: blur(7px);
+                            background-color: rgba(255, 255, 255, 0.7);
                         }
 
                         @supports (-webkit-backdrop-filter: blur(7px)){
                             -webkit-backdrop-filter: blur(7px);
+                            background-color: rgba(255, 255, 255, 0.7);
                         }
                         transition: width 0.3s ease;
                         -ms-transition: width 0.3s ease;
                         -moz-transition: width 0.3s ease;
                         -webkit-transition: width 0.3s ease;
-                        padding-left:0;
+                        
             
-                        div:nth-child(2){
-                            width: 100%;
-                            padding-top: 15px;
-                        }
+                        // div:nth-child(2){
+                        //     width: 100%;
+                        //     padding-top: 15px;
+                        // }
 
-                        table.chk-logTable{
+                        div.log-inner{
                             width: calc(100% - 54px);
-                            border-radius: 4px;
-                            margin-bottom: 10px;
+                            float:left;
+                            padding: 15px 0;
 
-                            thead{
-                                background-color: var(--color-inactive);
-                                color: #fff;
-                            }
-                            
-                            th, td{
-                                font-family: 'Roboto Mono', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-                                font-size: 13px;
-                                padding: 5px;
-                                vertical-align: center;
-                                text-align: center;
-                                width: 28%;
-                                max-width: 0;
-
-                                &:first-child{
+                            .form-group.shiny-input-container.form-horizontal{
+                                label {
+                                    white-space: nowrap;
+                                    text-overflow: ellipsis;
+                                    overflow-x:hidden;
+                                    padding-left: 0;
+                                    padding-right: 0;
                                     text-align: left;
-                                    width: 16%;
+                                }
+                                div.col-sm-10{
+                                    padding:0;
+                                }
+                            }
+
+                            table.chk-logTable{
+                                width: 100%;
+                                border-radius: 4px;
+                                margin-bottom: 10px;
+    
+                                thead{
+                                    background-color: var(--color-inactive);
+                                    color: #fff;
                                 }
                                 
-                                white-space: nowrap;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
+                                th, td{
+                                    font-family: 'Open Sans', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+                                    font-size: 13px;
+                                    padding: 5px;
+                                    vertical-align: center;
+                                    text-align: center;
+                                    width: 28%;
+                                    max-width: 0;
+    
+                                    &:first-child{
+                                        text-align: left;
+                                        width: 16%;
+                                    }
+                                    
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+    
+                                    &.showAll{
+                                        white-space: normal;
+                                        overflow: visible;
+                                    }
+                                }
 
-                                .showAll{
-                                    white-space: normal;
-                                    overflow: visible;
+                                td{
+                                    text-align: justify;
                                 }
                             }
-                        }
+                        }                       
 
                         .backBtn{
                             // background: blue;
@@ -1210,6 +1240,8 @@ body{
                         }
 
                         &.show{
+                            padding-left:0;
+                            padding-right: 15px;
                             display: block;
                             width: 90%;
                             overflow-y: auto;

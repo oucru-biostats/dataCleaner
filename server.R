@@ -1075,121 +1075,19 @@ shinyServer(function(input, output, session) {
   
   chkRes <- reactiveValues()
   
-  observeEvent(input$msd_action, {
-    
-    if (length(input$msd_subset))
-      tryCatch({
-        chkRes$msd_result <- missing_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
-                                          subset = input$msd_subset, fix = input$msd_fix)
-        
-        output$msd_log <- renderUI(renderLog(chkRes$msd_result))
-        session$sendCustomMessage('logOn', 'msd')
-      }, error = 
-        function(e) {
-          # Do something here
-        })
-  })
+  testSources <- sapply(testList, function(test) test$source)
   
-  observeEvent(input$did_action, {
-    
-    if (length(input$did_v))
-      tryCatch({
-        chkRes$did_result <- redundancy_check(v = input$did_v, repNo = input$did_repNo, upLimit = input$did_upLimit)
-        
-        output$did_log <- renderUI(renderLog(chkRes$did_result, vars = input$did_v))
-        session$sendCustomMessage('logOn', 'did')
-      }, error = 
-        function(e) {
-          # Do something here
-        })
-  })
+  for (source in testSources) source(source, local = TRUE)
   
-  observeEvent(input$outl_action, {
-    
-    if (length(input$outl_subset))
-      tryCatch({
-        chkRes$outl_result <- outliers_scan(data = dataset$data.loaded, keyVar = input$keyVariable, subset = input$outl_subset,
-                                            model = input$outl_model, skewParam = list(a = input$outl_skewA, b = input$outl_skewB),
-                                            customFn = setCustomFn(fn = paste(input$outl_fnLower, input$outl_fnUpper, sep = ';'),
-                                                                   param = input$outl_params),
-                                            accept.negative = input$outl_acceptNegative, accept.zero = input$outl_acceptZero)
-        
-        output$outl_log <- renderUI(renderLog(chkRes$outl_result))
-        session$sendCustomMessage('logOn', 'outl')
-      }, error = 
-        function(e) {
-          # Do something here
-        })
-  })
-  
-  
-  observeEvent(input$lnr_action, {
-    
-    if (length(input$lnr_subset))
-      tryCatch({
-        chkRes$lnr_result <- loners_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
-                                         subset = input$lnr_subset, threshold = input$lnr_threshold,
-                                         upLimit = input$lnr_upLimit, accept.dateTime = input$lnr_dateAsFactor)
-        
-        output$lnr_log <- renderUI(renderLog(chkRes$lnr_result))
-        session$sendCustomMessage('logOn', 'lnr')
-      }, error = 
-        function(e) {
-          # Do something here
-        })
-  })
-  
-  
-  observeEvent(input$bin_action, {
-    
-    if (length(input$bin_subset))
-      tryCatch({
-        chkRes$bin_result <- binary_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
-                                         subset = input$bin_subset, upLimit = input$bin_upLimit)
-        
-        output$bin_log <- renderUI(renderLog(chkRes$bin_result))
-        session$sendCustomMessage('logOn', 'bin')
-      }, error = 
-        function(e) {
-          # Do something here
-        })
-  })
-  
-  observeEvent(input$wsp_action, {
-    
-    if (length(input$wsp_subset))
-      tryCatch({
-        chkRes$wsp_result <- whitespaces_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
-                                              subset = input$wsp_subset)
-        chkRes$dblWSP_result <- doubleWSP_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
-                                               subset = input$wsp_subset)
-        
-        output$wsp_log <- renderUI(div(
-          tags$section(p('Leading and trailing whitespaces'),
-                       renderLog(chkRes$wsp_result)),
-          tags$section(p('Double whitespaces'),
-                       renderLog(chkRes$dblWSP_result))
-          ))
-        session$sendCustomMessage('logOn', 'wsp')
-      }, error = 
-        function(e) {
-          # Do something here
-        })
-  })
-  
-  observeEvent(input$spl_action, {
-    
-    if (length(input$spl_subset))
-      tryCatch({
-        chkRes$spl_result <- spelling_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
-                                           subset = input$spl_subset)
-        
-        output$wsp_log <- renderUI(renderLog(chkRes$spl_result))
-        session$sendCustomMessage('logOn', 'spl')
-      }, error = 
-        function(e) {
-          # Do something here
-        })
+  observeEvent(input$all_action, {
+    session$sendCustomMessage('all_check', TRUE)
+    tryCatch({
+      session$sendCustomMessage('all_check', TRUE)
+  }, error = 
+    function(e) {
+      # Do something here
+      print(e)
+    })
   })
   
   output$dictCreate_action <- 

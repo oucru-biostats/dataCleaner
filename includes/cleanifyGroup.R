@@ -10,6 +10,18 @@ iVectorize <- function(fun, ...){
   if(length(names(args))) do.call(Vectorize(fun, names(args)), args)
   else do.call(Vectorize(fun), args)
 }
+if.else <- function(expr, yes, no){
+  has.no <- !missing(no)  
+  has.yes <- !missing(yes)
+  len <- length(expr)
+  if (has.yes) if (length(yes) != len) yes <- rep(yes, len %/% length(yes) + 1)[1:len]
+  if (has.no) if (length(no) != len) no <- rep(no, len %/% length(no) + 1)[1:len]
+  
+  sapply(seq_along(expr), function(i){
+    if (expr[[i]] & has.yes) return(yes[[i]]) else invisible(NULL)
+    if (has.no) return(no[[i]]) else invisible(NULL)
+  })
+}
   
 
 ## Generate a list of names in list x
@@ -19,7 +31,7 @@ names_list <- function(x){
     if (is.list(x.1[[1]])) {
       out <- list()
       out[[1]] <-  names(x.1)
-      out[[2]] <-  name.list(x.1[[1]])
+      out[[2]] <-  names_list(x.1[[1]])
     } else out <-  names(x.1)
     return(out)
   })
@@ -36,7 +48,6 @@ get_level.list <- function(list, lv = 1, simplify = TRUE){
     
     if (lv == 1) this[[1]]
     else if(is.list(this)) {
-      print(this[-1])
       get_level.list(this[-1][[1]], lv-1, simplify = simplify)
     } 
   })
@@ -202,11 +213,11 @@ messageGenerator.306 <- function(message, displayName = c('keys', 'indexes', 'va
   
   message <- sub('$display$', displayName, message, fixed = TRUE)
   message <- sub('$behave$', if (displayName == 'values') 'be' else 'have', message, fixed = TRUE)
-  suffix <- ''
+  suffix <- '\n'
   if (nMax < length(displayValues)) {
     deltaL <- length(displayValues) - nMax
     displayValues <- displayValues[1:nMax]
-    suffix <- sprintf(' (and %d more)', deltaL)
+    suffix <- sprintf(' (and %d more)\n', deltaL)
   }
   displayValues.string <- toString(ifelse(displayName == 'values' & !is.na(displayValues), paste0('“', displayValues, '”'), displayValues))
   out <- sprintf('%s %s%s', message, displayValues.string, suffix)
@@ -466,8 +477,9 @@ getDefaultFn <- function(v, model = c('adjusted', 'boxplot', 'custom')){
 }
 
 opt <- function(...){
-  if (as.character(sys.call(1)[1]) %in% c('all_check', 'cleanify')) quo_to_list(...)
-  else stop('This helper function can only be used inside either "cleanify" or "all_check"')
+  # if ('all_check' %in% as.character(sys.call(1)) | 'cleanify' %in% as.character(sys.call(1))) quo_to_list(...)
+  # else stop('This helper function can only be used inside either "cleanify" or "all_check"')
+  quo_to_list(...)
 }
 
 setCustomFn <- function(fn = NULL, param = NULL){
@@ -478,9 +490,8 @@ setCustomFn <- function(fn = NULL, param = NULL){
   return(out)
 }
 
-intelliRep <- function(v, simplify = 1){
+intelliRep <- function(v, simplify = TRUE){
   if (!is.atomic(v)) stop('v should be an atomic vector.')
-  
   v.unique <- unique(na.omit(v))
   nRep <- sapply(v.unique, function(v.this) sum(na.omit(v) == v.this))
   nRep.unique <- unique(nRep)
@@ -965,7 +976,7 @@ missing_check <- function(v, silent = FALSE, outClass = c('checkResult.306', 'ch
   #### Check the input for compatibility ####
   
   #### Apply the check on specific variable####
-  test1 <- dataMaid::identifyMissing(v)
+  test1 <- dataMaid::identifyMissing(as.character(v))
   test2 <- is.na(v)
   is.missing <- any(test1$problem, test2)
   
@@ -1067,16 +1078,25 @@ redundancy_check <- function(v, repNo = 2, upLimit = 0.5, silent = FALSE, outCla
   
   #### Apply the check on variable ####
   if (any(intelliRep(v) != repNo)) {
-    diff <- setdiff(intelliRep(v), repNo)
+    # diff <- setdiff(intelliRep(v), repNo)
     rep.full <- intelliRep(v, simplify = FALSE)
+    diff <- setdiff(rep.full, repNo)
     rep.pos <- which(rep.full %in% diff)
-    v.pos <- sapply(rep.pos, function(pos) sum(rep.full[1:pos-1]) + 1)
+    v.val <- unique(v)[rep.pos]
+    v.pos <- sapply(v.val, function(val){
+      pos <- which(v == val)
+      pos <- append(pos, c(sep = '-'))
+      return(do.call(paste, as.list(pos)))
+    })
+
+    # rep.pos <- which(rep.full %in% diff)
+    # v.pos <- sapply(rep.pos, function(pos) sum(rep.full[1:pos-1]) + 1)
     if (length(v.pos)/length(v) <= upLimit){
       problem <- TRUE
-      problemValues <- v[v.pos]
+      problemValues <- v.val
       problemIndexes <- v.pos
       message <-  'These $display$ might $behave$ potential redundancy:'
-      res <- rep.full[rep.pos]
+      res <- structure(rep.full[rep.pos], names = v.val)
     } else {
       problem <- FALSE
       message <- sprintf('We notice redundancy within your variable. However, this might be a wrong conclusion due to their overly high frequency (~%d%%).\n>>> Set upLimit to a higher value to override this behavior.', floor(upLimit * 100))
@@ -1734,15 +1754,18 @@ cleanify <- function(data, keyVar = intelliKey(data), checks = c('missing', 'whi
   res <- data
   
   #### Get options ####
+  
   options <- lapply(checks, function(this){
     append(options$global, options[[this]])
   })
+  
   names(options) <- checks
   
   #### Get subset ####
   subset <- lapply(checks, function(check){
     subset.this <- options[[check]]$subset
     if (!length(subset.this)) subset.this <- names(data)
+    return(subset.this)
   })
   combinedSubset <- purrr::reduce(subset, union)
   

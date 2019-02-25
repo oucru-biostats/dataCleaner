@@ -43,8 +43,8 @@ shinyUI(navbarPage(
                 tags$script(src = 'scripts.js'),
                 div(id = 'foreground',
                     div (id = 'text',
-                         HTML('<div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>'),
-                         span(random_text[[runif(1, min = 1, max = length(random_text)) %>% round]])
+                         HTML('<div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>')
+                        #  span(random_text[[runif(1, min = 1, max = length(random_text)) %>% round]])
                     )
                 ),
                 div(id = 'overlay',

@@ -49,15 +49,9 @@ const SimpleBar_init = (elList) => {
 const responsiveText = function(){
     cssVar.grandTabTop = ($('#dataset').position().top + $('#dataset').outerHeight()) + 'px';
     if ($(window).width() < 768){
-        // $('#methodsNav').addClass('smallMedia', 300);
-        // $('#methodsToggle').addClass('smallMedia', 300);
-        // $('#methodsNav').find('a').map((idx, a) => $(a).html(nav_title.short_form[idx]));
         $('.paginate_button.previous').html('◄');
         $('.paginate_button.next').html('►');
     } else {
-        // $('#methodsNav').removeClass('smallMedia', 300);
-        // $('#methodsToggle').removeClass('smallMedia', 200);
-        // $('#methodsNav').find('a').map((idx, a) => $(a).html(nav_title.long_form[idx]));
         $('.paginate_button.previous').html('Previous');
         $('.paginate_button.next').html('Next');
     }    
@@ -100,10 +94,7 @@ const _DT_callback = function(dt) {
     responsiveText();
 }
 
-const _DT_initComplete = function() {
-    
-    // SimpleBar_init('#dataset .dataTables_scroll');
-    
+const _DT_initComplete = function() {    
     $('#dataset .dataTables_scroll .simplebar-content').scroll(function(){
     let left = $('#dataset .dataTables_scrollBody .simplebar-content').scrollLeft();
     $('#dataset .dataTables_scrollHead').animate({
@@ -114,8 +105,7 @@ const _DT_initComplete = function() {
     cssVar.contentHeight = $('.tab-pane.grand-tab-panel.active .tab-pane.active').height() + 'px';
     cssVar.contentinnerHeight = $('.tab-pane.grand-tab-panel.active .tab-pane.active .simplebar-content .row').height() + 'px';
 
-    $('#overlay').fadeOut(1000);
-    $('#sidebar-holder').show();
+    ready_state_init();
     
     tippy('.res-log td', {
         theme: 'light-border',
@@ -142,12 +132,44 @@ const nav_init = (el, methods) => {
     $(`.actionBar .btn#${$(el).find('ul.nav.nav-pills li.active a').data('code')}_action`).removeClass('hidden');
 };
 
-const backBtn = id => $(`<div class = 'backBtn' id = '${id}-backBtn'></div>`); 
+const backBtn = id => $(`<div class = 'backBtn' id = '${id}-backBtn' onclick = "backBtnClickFn('${id}')" ></div>`); 
+const backBtnClickFn = id => {
+    logHolder = $(`#${id}`);
+    logHolder.removeClass('show', 300)
+    .parent().find('.arg-holder div').removeClass('disabled');
+} 
 
 const logHolder_init = el => {
     el.addClass('logHolder-default');
     el.prepend(backBtn(el.attr('id')));
 };
+
+const ready_state_init = () => {
+    $('#grand-top-bar').removeClass('pseudo-hidden');
+    $('div.material-switch input').prop('disabled', false);
+    $('.navbar-toggle').removeClass('hidden');
+    $('.log-holder').removeClass('show');
+    $('.arg-holder div').removeClass('disabled');
+
+    $('#header-div').append($('#header'));
+    $('#overlay .lds-roller').removeClass('hidden',1000);
+    $('#data-input-holder').removeClass('shadowSurge').removeClass('center', 500);
+    $($('#data-input-holder label')[0]).addClass('hidden', 500);
+    $('#datasource_progress div').html('');
+
+    $('#overlay').fadeOut(1000);
+    $('#sidebar-holder').show();
+
+    // if ($('#datasource').val() == ''){
+    //     $('#data-input-holder').prepend($('#header'));
+    //     $('#sidebar-holder').hide();
+    //     $('#data-input-holder').addClass('center', 300);
+    //     $($('#data-input-holder label')[0]).removeClass('hidden');
+    //     $('#overlay .lds-roller').addClass('hidden',1000);
+    // } else {
+       
+    // }
+}
 
 /* jquery code run */
 
@@ -156,7 +178,7 @@ $(document).ready(() => {
     $('#grand-top-bar').addClass('pseudo-hidden');
     $('.navbar-toggle').addClass('hidden');
     set_bar($('#grand-top-bar li.active').position().left, $('#grand-top-bar li.active').position().left + $('#grand-top-bar li.active').outerWidth());
-    $('#data-input-holder').prepend($('#header'));
+    $('#data-input-holder').prepend($('#header')).addClass('shadowSurge');
 
     $('#grand-top-bar').find('li').hover(function(){
         if ($(this).position().left > barSize.barLeft)
@@ -174,24 +196,6 @@ $(document).ready(() => {
 
     $("#datasource").on("change", function() {
         $('#overlay').fadeIn(1000);
-        $('#grand-top-bar').removeClass('pseudo-hidden');
-        $('div.material-switch input').prop('disabled', false);
-        $('.navbar-toggle').removeClass('hidden');
-        $('.log-holder').removeClass('show');
-        $('.arg-holder div').removeClass('disabled');
-        if ($('#datasource').val() == ''){
-            $('#data-input-holder').prepend($('#header'));
-            $('#sidebar-holder').hide();
-            $('#data-input-holder').addClass('center', 300);
-            $($('#data-input-holder label')[0]).removeClass('hidden');
-            $('#overlay .lds-roller').addClass('hidden',1000);
-        } else {
-            $('#header-div').append($('#header'));
-            $('#overlay .lds-roller').removeClass('hidden',1000);
-            $('#data-input-holder').removeClass('center', 1000);
-            $($('#data-input-holder label')[0]).addClass('hidden', 1000);
-            $('#datasource_progress div').html('');
-        }
     });
 
     $('#data-input input:text').click(function(){
@@ -273,8 +277,6 @@ Shiny.addCustomMessageHandler('logOn', id => {
     let logHolder = $(`#${id}-log-holder`);
     let argHolder = $(`#${id}_options`);
     logHolder.height(Math.max(logHolder.parent().height(), $('.tab-pane.grand-tab-panel.active .tab-pane.active').height())).addClass('show', 300);
-    // logHolder.addClass('show', 300)
-    // setTimeout(logHolder.addClass('show', 300), 300);
     argHolder.addClass('disabled');
 
     if (!logHolder.hasClass('logHolder-default')) logHolder_init(logHolder);
@@ -284,6 +286,10 @@ Shiny.addCustomMessageHandler('logOn', id => {
 
 Shiny.addCustomMessageHandler('haveData', haveData => {
     if (haveData) $('#overlay').fadeOut(1000);
+});
+
+Shiny.addCustomMessageHandler('all_check', nothing => {
+    if (nothing) $('#actionCheckBar div.each-action-holder button').click();
 });
 
 //<div>Icons made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>

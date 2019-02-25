@@ -76,6 +76,9 @@ $(window).resize(() => {
 
 nav_init('#methodsNav', ['msd', 'did', 'outl', 'lnr', 'bin', 'wsp', 'spl']);
 
-
+$(document).on('dblclick', '.log-holder .chk-logTable td', function() {
+    $(this).toggleClass('showAll', 300)
+    .next().toggleClass('showAll', 300);
+});
 
 
