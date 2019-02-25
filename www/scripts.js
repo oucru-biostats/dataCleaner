@@ -123,13 +123,14 @@ const _DT_initComplete = function() {
 const nav_init = (el, methods) => {
     methods.map((method, idx) => {
         $($(el).find('ul.nav.nav-pills li a')[idx]).data('code', method);
-        $($(el).find('ul.nav.nav-pills li a')).click(function(){
+        $(el).find('ul.nav.nav-pills li a').click(function(){
             $('.actionBar .btn:not(#all_action)').addClass('hidden');
             $(`.actionBar .btn#${$(this).data('code')}_action`).removeClass('hidden');
-        })
+        });
     });
-    $('.actionBar .btn:not(#all_action)').addClass('hidden');
-    $(`.actionBar .btn#${$(el).find('ul.nav.nav-pills li.active a').data('code')}_action`).removeClass('hidden');
+
+    $('.actionBar').find('.btn:not(#all_action)').addClass('hidden');
+    $('.actionBar').find(`.btn#${$(el).find('ul.nav.nav-pills li.active a').data('code')}_action`).removeClass('hidden');
 };
 
 const backBtn = id => $(`<div class = 'backBtn' id = '${id}-backBtn' onclick = "backBtnClickFn('${id}')" ></div>`); 
@@ -140,8 +141,8 @@ const backBtnClickFn = id => {
 } 
 
 const logHolder_init = el => {
-    el.addClass('logHolder-default');
-    el.prepend(backBtn(el.attr('id')));
+    el.addClass('logHolder-default').prepend(backBtn(el.attr('id')));
+    SimpleBar_init(`#${el.attr('id')}`);
 };
 
 const ready_state_init = () => {
@@ -232,6 +233,10 @@ $('nav').on('swiperight', () => {
     else $($('#grand-top-bar').find('li a')[$('#grand-top-bar').find('li a').length - 1]).click();
 });
 
+$(document).on('click', '.actionBar button', function(){
+    $(this).addClass('working');
+})
+
 /* resize event */
 $(window).resize(() => {
     set_bar($('#grand-top-bar li.active').position().left, $('#grand-top-bar li.active').position().left + $('#grand-top-bar li.active').outerWidth());
@@ -276,8 +281,10 @@ Shiny.addCustomMessageHandler('disabledMethod', disabled => disabled.map(value =
 Shiny.addCustomMessageHandler('logOn', id => {
     let logHolder = $(`#${id}-log-holder`);
     let argHolder = $(`#${id}_options`);
-    logHolder.height(Math.max(logHolder.parent().height(), $('.tab-pane.grand-tab-panel.active .tab-pane.active').height())).addClass('show', 300);
+    logHolder.height(Math.max(logHolder.parent().height() - 5, $('.tab-pane.grand-tab-panel.active .tab-pane.active').height() -5)).addClass('show', 300);
     argHolder.addClass('disabled');
+    $(`#${id}_action`).removeClass('working');
+    $('#all_action').removeClass('working');
 
     if (!logHolder.hasClass('logHolder-default')) logHolder_init(logHolder);
     cssVar.contentinnerHeight = $('.tab-pane.grand-tab-panel.active .tab-pane.active .simplebar-content .row').height() + 'px';

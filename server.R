@@ -146,7 +146,7 @@ shinyServer(function(input, output, session) {
       circle = FALSE,
       label = '',
       status = "default",
-      icon = icon("ellipsis-v"),
+      icon = htmltools::browsable(tags$i(class = 'material-icons', 'settings')),
       right = TRUE,
       size = 'sm',
       width = 'auto',
@@ -266,7 +266,7 @@ shinyServer(function(input, output, session) {
     div(
       div(
         actionButton(inputId = 'dictCheck_action', label = 'Do this Check', width = '120px'),
-        downloadButton(outputId = 'dictCreate_action', label = 'Save Dictionary', width = '200px'),
+        downloadButton(outputId = 'dictCreate_action', label = 'Save Rules', width = '200px'),
         class = 'each-action-holder'
       ),
       class = 'actionBar'
@@ -354,14 +354,14 @@ shinyServer(function(input, output, session) {
   
   output$dictNav <- renderUI(
     div(
-      tags$script(src = "etc/dict-nav.js"),
       navlistPanel(
-        tabPanel('Check with pre-defined Dict',
+        tabPanel('Check with pre-defined Rule set',
                  div(id = 'dict-check',
                      uiOutput('dictCheck'))),
-        tabPanel('Create new Dictionary',
+        tabPanel('Create new Rule set',
                  div(id = 'dict-create',
                      uiOutput('dictCreate'))),
+        tags$script(src = "etc/dict-nav.js"),
         well = FALSE,
         widths = c(3, 9)
       )
@@ -410,7 +410,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$msd_instr <- renderUI(HTML(instr$msd_instruction))
-  output$msd_log <- renderUI(div('lorem ipsum'))
+  output$msd_log <- NULL
   
   ### Numerical Outliers ####
   output$outl_all <- renderUI(
@@ -523,7 +523,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$outl_instr <- renderUI(HTML(instr$outl_instruction))
-  output$outl_log <- renderUI(div('lorem ipsum'))
+  output$outl_log <- NULL
   
   ### Categorical Loners ####
   
@@ -618,7 +618,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$lnr_instr <- renderUI(HTML(instr$lnr_instruction))
-  output$lnr_log <- renderUI(div('lorem ipsum'))
+  output$lnr_log <- NULL
   
   ### Binary ####
   
@@ -675,7 +675,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$bin_instr <- renderUI(HTML(instr$bin_instruction))
-  output$bin_log <- renderUI(div('lorem ipsum'))
+  output$bin_log <- NULL
   
   ## Whitespaces check #####
   
@@ -726,7 +726,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$wsp_instr <- renderUI(HTML(instr$wsp_instruction))
-  output$wsp_log <- renderUI(div('lorem ipsum'))
+  output$wsp_log <- NULL
   
   ## Spelling check #####
   
@@ -783,7 +783,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$spl_instr <- renderUI(HTML(instr$spl_instruction))
-  output$spl_log <- renderUI(div('lorem ipsum'))
+  output$spl_log <- NULL
   
   ### Redundant observation ####
   
@@ -867,7 +867,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$did_instr <- renderUI(HTML(instr$spl_instruction))
-  output$did_log <- renderUI(div('lorem ipsum'))
+  output$did_log <- NULL
   
   ## Dictionary #####
   
@@ -894,7 +894,7 @@ shinyServer(function(input, output, session) {
         fluidRow(
           column(7,
                  fileInput(inputId = 'info_path',
-                           label = 'Get dictionary file', 
+                           label = 'Import Rule set', 
                            accept = c("text/csv", 
                                       "text/comma-separated-values,text/plain",
                                       ".csv", ".xls", ".xlsx"),
@@ -908,7 +908,7 @@ shinyServer(function(input, output, session) {
     )
   
   output$dictCheck_instr <- renderUI(HTML(instr$spl_instruction))
-  output$dictCheck_log <- renderUI(div('lorem ipsum'))
+  output$dictCheck_log <- NULL
   
   
   ### Dictionary Create ####
@@ -1093,7 +1093,7 @@ shinyServer(function(input, output, session) {
   output$dictCreate_action <- 
     downloadHandler(
       filename = function() {
-        paste0(fileInfo$name, '-DataDictionary.csv')
+        paste0(fileInfo$name, '-RuleSet.csv')
       },
       content = function(filePath) write.csv(hot_to_r(input$defTable), filePath)
     )

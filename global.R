@@ -12,6 +12,8 @@ library(jsonlite)
 library(tools)
 
 rootPath <- getwd()
+shinyOn <- TRUE
+dev <- TRUE
 
 includedFiles <- list.files('includes')
 for (file in includedFiles)
@@ -40,9 +42,9 @@ for (file in metaFiles) {
 
 # Loaded dev code ######
 if (exists('dev')) if (dev) {
-  devIncludedFiles <- list.files('includes')
+  devIncludedFiles <- list.files('dev-includes')
   for (file in devIncludedFiles)
-    source(paste('includes',file,sep = '//'))
+    source(paste('dev-includes',file,sep = '//'))
   # source(file = 'dev-includes//set_instr.R')
   # source(file = 'dev-includes//set_randText.R')
 }

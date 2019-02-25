@@ -570,7 +570,7 @@ intelliType <- function(df, threshold = 1){
   return(res)
 }
 
-intelliIsCompatible <- function(v = NULL, v.type = NULL, test = c('whitespaces', 'doubleWSP', 'outliers', 'loners', 'binary', 'missing', 'spelling'), accept.dateTime = FALSE){
+intelliIsCompatible <- function(v = NULL, v.type = NULL, test = c('whitespaces', 'doubleWSP', 'outliers', 'loners', 'binary', 'missing', 'spelling', 'case'), accept.dateTime = FALSE){
   test <- match.arg(test)
   if (is.null(v.type)) v.type <- c(intelliType(v), 'key'[intelliIsKey(v)$is.key])
   if (is.null(v.type) && is.null(v)) stop('Either v or v.type should be defined.')
@@ -582,12 +582,13 @@ intelliIsCompatible <- function(v = NULL, v.type = NULL, test = c('whitespaces',
                           'loners' = (!('dateTime' %in% v.type) | accept.dateTime) & !('key' %in% v.type),
                           'binary' = !'key' %in% v.type & if (!missing(v)) length(unique(v)) < 5 else TRUE,
                           'missing' = TRUE,
-                          'spelling' = 'lang' %in% v.type
+                          'spelling' = 'lang' %in% v.type,
+                          'case' = 'lang' %in% v.type
                           )
   return(is.compatible)
 }
 
-intelliCompatible <- function(data, tests = c('whitespaces', 'doubleWSP', 'outliers', 'loners', 'binary', 'missing', 'spelling'), accept.dateTime = FALSE){
+intelliCompatible <- function(data, tests = c('whitespaces', 'doubleWSP', 'outliers', 'loners', 'binary', 'missing', 'spelling', 'case'), accept.dateTime = FALSE){
   if (missing(accept.dateTime)) accept.dateTime <- FALSE 
   else {
     accept.dateTime <- as.logical(accept.dateTime)
@@ -655,7 +656,7 @@ whitespaces_check <- function(v, silent = FALSE, outClass = c('checkResult.306',
   
   #### Apply the check on specific variable####
   v <- as.character(v)
-  test <- dataMaid::identifyWhitespace(v)
+  test <- dataMaid::identifyWhitespace(v, nMax = Inf)
   
   if (test$problem) {
     problem <- TRUE
@@ -976,7 +977,7 @@ missing_check <- function(v, silent = FALSE, outClass = c('checkResult.306', 'ch
   #### Check the input for compatibility ####
   
   #### Apply the check on specific variable####
-  test1 <- dataMaid::identifyMissing(as.character(v))
+  test1 <- dataMaid::identifyMissing(as.character(v), nMax = Inf)
   test2 <- is.na(v)
   is.missing <- any(test1$problem, test2)
   
@@ -995,6 +996,54 @@ missing_check <- function(v, silent = FALSE, outClass = c('checkResult.306', 'ch
   out <- cR306_init(testName = 'missing data', outClass = outClass,
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemIndexes, message = message)
   
+  return(out)
+}
+
+case_check <- function(v, v.type = intelliType(v), silent = FALSE, outClass = c('checkResult.306', 'checkResult')){
+  #### Arguments check ####
+  if (ncol(as.data.frame(v)) > 1) stop('This function is for vector only. Use the loners_scan instead.')
+  if (!requireNamespace('dataMaid')) stop('Please install dataMaid package before continuing.')
+  if (!requireNamespace('hunspell')) stop('Please install hunspell package before continuing.')
+  
+  silent <- as.logical(silent)
+  if (any(is.na(silent), is.null(silent))) silent <- FALSE
+  if (any(is.na(outClass), is.null(outClass))) outClass <- 'checkResult.306' else outClass <- match.arg(outClass)
+  if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
+  
+  #### Preparation of Outputs ####
+  problem <- logical(0)
+  problemValues <- NULL
+  problemIndexes <- NULL
+  message <- list()
+  
+  #### Check the input for compatibility ####
+  is.supported <- intelliIsCompatible(v.type = v.type, test = 'case')
+  if (!is.supported) stop('This is not a lingustic variable and is not compatible with the check.')
+  
+  #### Apply the check on variable ####
+  v <- as.character(v)
+  
+  test <- dataMaid::identifyCaseIssues(v, nMax = Inf)
+  
+  if (test$problem){
+    problem <- TRUE
+    message <- 'These $display$ might $behave$ case issue:'
+    problemValues <- test[[3]]
+    problemIndexes <- which(v %in% test[[3]])
+    res <- sapply(test[[3]], function(val) {
+      val.lower <- unique(tolower(val))
+      v.lower <- tolower(v)
+      v.pos <- which(v.lower %in% val.lower)
+      return(do.call(paste, as.list(append(v.pos, sep = '-'))))
+    })
+  } else {
+    problem <- FALSE
+    message <- 'No problems found'
+  }
+  
+  #### Return the output ####
+  out <- cR306_init(testName = 'case issues', outClass = outClass,
+                    problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemIndexes, message = message, res = res)
   return(out)
 }
 
@@ -1112,7 +1161,7 @@ redundancy_check <- function(v, repNo = 2, upLimit = 0.5, silent = FALSE, outCla
   return(out)
 }
 
-all_check <- function(v, v.type = intelliType(v), checks = c('missing', 'whitespaces', 'doubleWSP', 'spelling', 'outliers', 'binary', 'loners'), options = opt(), silent = FALSE, outClass = c('checkResult.306', 'checkResult')){
+all_check <- function(v, v.type = intelliType(v), checks = c('missing', 'whitespaces', 'doubleWSP', 'spelling', 'outliers', 'binary', 'loners', 'case'), options = opt(), silent = FALSE, outClass = c('checkResult.306', 'checkResult')){
     
   #### Arguments check ####
   if (ncol(as.data.frame(v)) > 1) stop('This function is for vector only. Use cleanify instead.')
@@ -1159,7 +1208,9 @@ all_check <- function(v, v.type = intelliType(v), checks = c('missing', 'whitesp
                                              silent = silent, outClass = outClass),
                        spelling = spelling_check(v, v.type,
                                                  upLimit = options$spelling$upLimit,
-                                                 silent = silent, outClass = outClass))
+                                                 silent = silent, outClass = outClass),
+                       case = case_check(v, v.type,
+                                         silent = silent, outClass = outClass))
   }
   names(res) <- checks
   class(res) <- c('checkResult.306.all_check')
@@ -1319,7 +1370,8 @@ whitespaces_scan <- function(data, keyVar = intelliKey(data), subset = names(dat
   #### Return the output ####
   out <- cR306_init(testName = 'whitespaces',
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemKeys, message = message, res = res)
-  return(print(out, ...))
+  if (!silent) return(print(out, ...))
+  return(out)
 }
 
 doubleWSP_scan <- function(data, keyVar = intelliKey(data), subset = names(data), fix = FALSE, silent = FALSE, ...){
@@ -1369,7 +1421,8 @@ doubleWSP_scan <- function(data, keyVar = intelliKey(data), subset = names(data)
   #### Return the output ####
   out <- cR306_init(testName = 'doublespaces',
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemKeys, message = message, res = res)
-  return(print(out, ...))
+  if (!silent) return(print(out, ...))
+  return(out)
 }
 
 outliers_scan <- function(data, keyVar = intelliKey(data), subset = names(data), model = c('adjusted', 'boxplot', 'custom'), skewParam = list(a = -4, b = 3), customFn = setCustomFn(), accept.negative = FALSE, accept.zero = FALSE, silent = FALSE, ...){
@@ -1470,7 +1523,8 @@ outliers_scan <- function(data, keyVar = intelliKey(data), subset = names(data),
   #### Return the output ####
   out <- cR306_init(testName = 'outliers',
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemKeys, message = message, res = res)
-  return(print(out, ...))
+  if (!silent) return(print(out, ...))
+  return(out)
 }
 
 loners_scan <- function(data, keyVar = intelliKey(data), subset = names(data), accept.dateTime = FALSE, threshold = 5, upLimit = 0.75, silent = FALSE, ...){
@@ -1539,7 +1593,8 @@ loners_scan <- function(data, keyVar = intelliKey(data), subset = names(data), a
   #### Return the output ####
   out <- cR306_init(testName = 'loners',
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemKeys, message = message, res = res)
-  return(print(out, ...))
+  if (!silent) return(print(out, ...))
+  return(out)
 }
 
 binary_scan <- function(data, keyVar = intelliKey(data), subset = names(data), upLimit = 'auto', silent = FALSE, ...){
@@ -1602,7 +1657,8 @@ binary_scan <- function(data, keyVar = intelliKey(data), subset = names(data), u
   #### Return the output ####
   out <- cR306_init(testName = 'binaries',
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemKeys, message = message, res = res)
-  return(print(out, ...))
+  if (!silent) return(print(out, ...))
+  return(out)
 }
 
 missing_scan <- function(data, keyVar = intelliKey(data), subset = names(data), fix = FALSE, silent = FALSE, ...){
@@ -1655,7 +1711,8 @@ missing_scan <- function(data, keyVar = intelliKey(data), subset = names(data), 
   #### Return the output ####
   out <- cR306_init(testName = 'missing data',
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemKeys, message = message, res = res)
-  return(print(out, ...))
+  if (!silent) return(print(out, ...))
+  return(out)
 }
 
 spelling_scan <- function(data, keyVar = intelliKey(data), subset = names(data), upLimit = 0.5, fix = FALSE, silent = FALSE, ...){
@@ -1724,12 +1781,77 @@ spelling_scan <- function(data, keyVar = intelliKey(data), subset = names(data),
   #### Return the output ####
   out <- cR306_init(testName = 'spelling issues',
                     problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemKeys, message = message, res = res)
-  return(print(out, ...))
+  if (!silent) return(print(out, ...))
+  return(out)
+}
+
+case_scan <- function(data, keyVar = intelliKey(data), subset = names(data), silent = FALSE, ...){
+  ### Argument check ####
+  if (missing(data)) stop('`data` cannot be empty.') 
+  else if (is.atomic(data)) {
+    name <- deparse(substitute(data))
+    data <- as.data.frame(data)
+    colnames(data) <- name
+  }
+  if (any(is.na(subset), is.null(subset))) {
+    if (is.null(names(data))) subset <- 1:ncol(data) else subset = names(data)
+  }
+  
+  silent <- as.logical(silent)
+  if (any(is.na(silent), is.null(silent))) silent <- FALSE
+  if (exists('shinyOn')) if (shinyOn == TRUE) silent <- TRUE
+  
+  if (is.null(keyVar)) keyVar <- 'index'
+  data <- cbind(index = 1:nrow(data), data)
+  
+  ### Preparation of Output ####
+  problem <- list()
+  problemValues <- list()
+  problemIndexes <- list()
+  problemKeys <- list()
+  message <- list()
+  res <- data
+  
+  #### Pre-test Notice ####
+  message$notice <- append(message$notice, 'Keep in mine that only potential meaningful text columns will be checked.')
+  if (!silent) message('Keep in mine that only potential meaningful text columns will be checked.')
+  
+  #### Quick check on the data provided ####
+  dataTypes <- intelliType(data)
+  vars <- names(data)
+  vars.supported <- vars[vars %in% names(dataTypes[sapply(dataTypes, function(dataType) return('lang' %in% dataType))])]
+  subset.supported <- intersect(subset, vars.supported)
+  if (!setequal(subset.supported, subset)) {
+    w.temp <- sprintf('Some variables are not supported and will be omitted from this check: %s', toString(setdiff(subset, subset.supported)))
+    message$notice <- append(message$notice, w.temp)
+    if (!silent) message(w.temp)
+    subset <- subset.supported
+  }
+  
+  #### Itterate over variables and apply the check ####
+  for (c in subset){
+    data[[c]] <- suppressWarnings(as.character(data[[c]]))
+    
+    test <- case_check(v = data[[c]], v.type = 'lang', silent = silent)
+    
+    problem[[c]] <- test$problem
+    message[[c]] <- test$message
+    problemValues[[c]] <- test$problemValues
+    problemIndexes[[c]] <- test$problemIndexes
+    problemKeys[[c]] <- data[[keyVar]][test$problemIndexes]
+    res[[c]] <- test$res
+  }
+  
+  #### Return the output ####
+  out <- cR306_init(testName = 'case issues',
+                    problem = problem, problemValues = problemValues, problemIndexes = problemIndexes, problemKeys = problemKeys, message = message, res = res)
+  if (!silent) return(print(out, ...))
+  return(out)
 }
 
 # Do-every-thing function ######
 
-cleanify <- function(data, keyVar = intelliKey(data), checks = c('missing', 'whitespaces', 'doubleWSP', 'spelling', 'outliers', 'binary', 'loners'), options = opt(), silent = FALSE, ...){
+cleanify <- function(data, keyVar = intelliKey(data), checks = c('missing', 'whitespaces', 'doubleWSP', 'spelling', 'outliers', 'binary', 'loners', 'case'), options = opt(), silent = FALSE, ...){
   
   #### Arguments check ####  
   if (missing(data)) stop('`data` cannot be empty.') else {
@@ -1740,7 +1862,7 @@ cleanify <- function(data, keyVar = intelliKey(data), checks = c('missing', 'whi
     }
   }
   
-  if (any(!length(checks), is.na(checks))) checks <- c('missing', 'whitespaces', 'doubleWSP', 'spelling', 'outliers', 'binary', 'loners')
+  if (any(!length(checks), is.na(checks))) checks <- c('missing', 'whitespaces', 'doubleWSP', 'spelling', 'outliers', 'binary', 'loners', 'case')
   
   silent <- as.logical(silent)
   if (any(is.na(silent), is.null(silent))) silent <- FALSE
@@ -1788,7 +1910,8 @@ cleanify <- function(data, keyVar = intelliKey(data), checks = c('missing', 'whi
   
   #### Return the output ####
   class(out) <- 'checkResult.306.cleanify'
-  return(print(out, ...))
+  if (!silent) return(print(out, ...))
+  return(out)
 }
 
 # EOF 

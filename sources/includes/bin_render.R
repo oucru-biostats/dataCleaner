@@ -1,23 +1,21 @@
-chkRes$bin_result <- binary_scan(data = dataset$data.loaded, keyVar = input$keyVariable,
-                                 subset = input$bin_subset, upLimit = input$bin_upLimit)
+i <- get_input_vars(input, 'bin')
+data <- dataset$data.loaded
 
-output$bin_log <- 
-  renderUI(
-    div(
-      class = 'log-inner',
-      pickerInput(inputId = "bin_display",
-                  label = "View mode",
-                  inline = TRUE,
-                  width = '100%',
-                  choices = list(
-                    'Value' = 'values',
-                    'Real index' = 'indexes',
-                    'ID (base on Key)' = 'keys'
-                  )),
-      uiOutput('bin_logTable')
+chkRes$bin_result <- 
+  future(
+    test_apply(i$bin_enabled,
+               binary_scan,
+               data = data, keyVar = i$keyVariable,
+               subset = i$bin_subset, upLimit = i$bin_upLimit
     )
   )
 
-output$bin_logTable <- renderUI(renderLog(chkRes$bin_result, display = input$bin_display, keys = data.keys()))
+chkRes$bin_result %...>%
+  renderLog(chkRes = ., display = i$bin_display, keys = data.keys()) %...>% 
+  (function (res) {
+    bin_logTable(res)
+    session$sendCustomMessage('logOn', 'bin')
+  })
 
-session$sendCustomMessage('logOn', 'bin')
+
+

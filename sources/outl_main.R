@@ -1,3 +1,4 @@
+outl_logTable <- reactiveVal()
 observeEvent(input$outl_action, {
   
   if (length(input$outl_subset))
@@ -8,3 +9,20 @@ observeEvent(input$outl_action, {
         # Do something here
       })
 })
+
+output$outl_log <-
+  renderUI(
+    div(
+      class = 'log-inner',
+      pickerInput(inputId = "outl_display",
+                  label = "View mode",
+                  inline = TRUE,
+                  width = '100%',
+                  choices = list(
+                    'Value' = 'values',
+                    'Real index' = 'indexes',
+                    'ID (base on Key)' = 'keys'
+                  )),
+      outl_logTable()
+    )
+  )

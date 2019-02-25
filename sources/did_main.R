@@ -1,3 +1,4 @@
+did_logTable <- reactiveVal()
 observeEvent(input$did_action, {
   
   tryCatch({
@@ -8,3 +9,20 @@ observeEvent(input$did_action, {
       # Do something here
     })
 })
+
+
+output$did_log <- 
+  renderUI(
+    div(
+      class = 'log-inner',
+      pickerInput(inputId = "did_display",
+                  label = "View mode",
+                  inline = TRUE,
+                  width = '100%',
+                  choices = list(
+                    'Value' = 'values',
+                    'Real index' = 'indexes'
+                  )),
+      did_logTable()
+    )
+  )

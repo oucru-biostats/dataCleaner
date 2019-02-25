@@ -1,25 +1,21 @@
+i <- get_input_vars(input, 'msd')
+keyVar <- input$keyVariable
+data <- dataset$data.loaded
+
 chkRes$msd_result <- 
-  test_apply(c(input$msd_enabled, length(input$msd_subset)),
-             missing_scan,
-             data = dataset$data.loaded, keyVar = input$keyVariable,
-             subset = input$msd_subset, fix = input$msd_fix)
-
-output$msd_log <- 
-  renderUI(
-    div(
-      class = 'log-inner',
-      pickerInput(inputId = "msd_display",
-                  label = "View mode",
-                  inline = TRUE,
-                  width = '100%',
-                  choices = list(
-                    'Value' = 'values',
-                    'Real index' = 'indexes',
-                    'ID (base on Key)' = 'keys'
-                  )),
-      uiOutput('msd_logTable')
+  future(
+    test_apply(c(i$msd_enabled, length(i$msd_subset)),
+               missing_scan,
+               data = data, keyVar = i$keyVariable,
+               subset = i$msd_subset, fix = i$msd_fix
     )
-  )
+  ) 
 
-output$msd_logTable <- renderUI(renderLog(chkRes$msd_result, display = input$msd_display, keys = data.keys()))
-session$sendCustomMessage('logOn', 'msd')
+chkRes$msd_result %...>% 
+  renderLog(chkRes = .,display = input$msd_display, keys = data.keys()) %...>% 
+  (function (res) {
+    msd_logTable(res)
+    session$sendCustomMessage('logOn', 'msd')
+  })
+
+

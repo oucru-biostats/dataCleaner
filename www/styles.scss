@@ -1,5 +1,16 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans|Roboto+Mono&subset=latin-ext');
 
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url('fonts/materialicons/MaterialIcons-Regular.eot'); /* For IE6-8 */
+    src: local('Material Icons'),
+      local('MaterialIcons-Regular'),
+      url('fonts/materialicons/MaterialIcons-Regular.woff2') format('woff2'),
+      url('fonts/materialicons/MaterialIcons-Regular.woff') format('woff'),
+      url('fonts/materialicons/MaterialIcons-Regular.ttf') format('truetype');
+  }
 
 @font-face{
     font-family: 'banschrift-online';
@@ -59,6 +70,16 @@
         box-shadow: 0px 0px 10px var(--color-shadow);
         background-color: #fff;
         opacity: 1;
+    }
+}
+
+@keyframes marquee{
+    0%{
+        left: 0;
+    }
+
+    100%{
+        left: 100%;
     }
 }
 
@@ -184,6 +205,31 @@ $input-top: calc(50vh - 20px);
         left: 10px;
     }
 } 
+
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;  /* Preferred icon size */
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+  
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+  
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+  
+    /* Support for IE. */
+    font-feature-settings: 'liga';
+  }
 
 body{
     font-family: 'Open Sans', 'FiraSans', 'Bahnschrift','banschrift-online','Franklin Gothic Medium', Arial, sans-serif;
@@ -313,7 +359,27 @@ body{
         .each-action-holder &{
             float:right;
             @media only screen and (max-width: 500px){
-                
+            }
+        }
+    }
+    button{
+        overflow-x: hidden;
+        position: relative;
+
+        &.working{
+            pointer-events: none;
+
+            &::after{
+                content: '';
+                display: block;
+                position: absolute;
+                width: 40px;
+                height: 100%;
+                bottom: 0;
+                background: #489948;
+                opacity: 0.5;
+                border: 3px;
+                animation: marquee 0.5s linear infinite;
             }
         }
     }
@@ -374,8 +440,8 @@ body{
     z-index:10001;
     position: fixed;
     top: 13px;
-    right:35px;
-    max-width:25%;
+    right:45px;
+    max-width:calc(25% - 10px);
     transition: all ease 0.3s;
     -moz-transition: all ease 0.3s;
     -o-transition: all ease 0.3s;
@@ -618,7 +684,7 @@ body{
     #datasetMenu{
         
         height: 34px;
-        width: 18px;
+        width: 34px;
         display:block;
         border: none;
         background-color: transparent;
@@ -645,7 +711,7 @@ body{
         }
 
         i{
-            font-size: 15px;
+            font-size: 24px;
         }
     }
 
@@ -1117,19 +1183,23 @@ body{
                             padding-left: 24px;
                         }
                     }
+
+                    .instr-holder{
+                        @media only screen and (min-width: 501px) and (max-width: 767px){
+                            padding-left: 30px;
+                        }
+                    }
             
                     .log-holder{
                         width: 0;
                         height: 0;
                         padding:0;
-                        // height: calc(100vh - var(--grandTabTop) - 1px);
-                        // height: calc(100vh - var(--grandTabTop) - 32px - 3vh);
-                        // display:none;
                         position: absolute;
-                        top: 0;
+                        top: 5px;
                         right: 0;
                         overflow: hidden;
                         z-index: 13;
+                        border-radius: 4px 0 0 4px;
                         background-color: rgb(255, 255, 255);
                         @supports (backdrop-filter: blur(7px)){
                             backdrop-filter: blur(7px);
@@ -1224,7 +1294,7 @@ body{
                             -ms-transition: all 0.3s ease;
 
                             &::before{
-                                content: url('img/back-button.svg');
+                                content: url('img/right-arrow.svg');
                                 width: 34px;
                                 height: 34px;
                                 border-radius: 17px;
@@ -1397,10 +1467,34 @@ body{
         
                     li {
                         &.active a::after{
-                            content: url('img/hamburger.svg');
+                            content: 'menu';
                             position: absolute;
-                            top: 11px;
-                            right: 13px;
+                            top: 7px;
+                            right: 9px;
+
+                            color: #fff;
+                            font-family: 'Material Icons';
+                            font-weight: normal;
+                            font-style: normal;
+                            font-size: 24px;  /* Preferred icon size */
+                            display: inline-block;
+                            line-height: 1;
+                            text-transform: none;
+                            letter-spacing: normal;
+                            word-wrap: normal;
+                            white-space: nowrap;
+                            direction: ltr;
+                          
+                            /* Support for all WebKit browsers. */
+                            -webkit-font-smoothing: antialiased;
+                            /* Support for Safari and Chrome. */
+                            text-rendering: optimizeLegibility;
+                          
+                            /* Support for Firefox. */
+                            -moz-osx-font-smoothing: grayscale;
+                          
+                            /* Support for IE. */
+                            font-feature-settings: 'liga';                            
                         }
                     }
                 }

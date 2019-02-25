@@ -1,5 +1,14 @@
 @import url("https://fonts.googleapis.com/css?family=Open+Sans|Roboto+Mono&subset=latin-ext");
 @font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url("fonts/materialicons/MaterialIcons-Regular.eot");
+  /* For IE6-8 */
+  src: local("Material Icons"), local("MaterialIcons-Regular"), url("fonts/materialicons/MaterialIcons-Regular.woff2") format("woff2"), url("fonts/materialicons/MaterialIcons-Regular.woff") format("woff"), url("fonts/materialicons/MaterialIcons-Regular.ttf") format("truetype");
+}
+
+@font-face {
   font-family: 'banschrift-online';
   src: url("fonts/bahnschrift.ttf");
 }
@@ -86,6 +95,24 @@
             box-shadow: 0px 0px 10px var(--color-shadow);
     background-color: #fff;
     opacity: 1;
+  }
+}
+
+@-webkit-keyframes marquee {
+  0% {
+    left: 0;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    left: 0;
+  }
+  100% {
+    left: 100%;
   }
 }
 
@@ -223,6 +250,30 @@
   left: 10px;
 }
 
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+  /* Support for IE. */
+  -webkit-font-feature-settings: 'liga';
+          font-feature-settings: 'liga';
+}
+
 body {
   font-family: 'Open Sans', 'FiraSans', 'Bahnschrift','banschrift-online','Franklin Gothic Medium', Arial, sans-serif;
   transition: all 0.3s ease;
@@ -347,6 +398,29 @@ body #foreground #text .lds-roller {
   float: right;
 }
 
+.actionBar button {
+  overflow-x: hidden;
+  position: relative;
+}
+
+.actionBar button.working {
+  pointer-events: none;
+}
+
+.actionBar button.working::after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 40px;
+  height: 100%;
+  bottom: 0;
+  background: #489948;
+  opacity: 0.5;
+  border: 3px;
+  -webkit-animation: marquee 0.5s linear infinite;
+          animation: marquee 0.5s linear infinite;
+}
+
 #dict-check-args-holder #info_path {
   width: 100%;
 }
@@ -396,8 +470,8 @@ body #foreground #text .lds-roller {
   z-index: 10001;
   position: fixed;
   top: 13px;
-  right: 35px;
-  max-width: 25%;
+  right: 45px;
+  max-width: calc(25% - 10px);
   transition: all ease 0.3s;
   -moz-transition: all ease 0.3s;
   -o-transition: all ease 0.3s;
@@ -641,7 +715,7 @@ body #foreground #text .lds-roller {
 
 #dataOptions #datasetMenu {
   height: 34px;
-  width: 18px;
+  width: 34px;
   display: block;
   border: none;
   background-color: transparent;
@@ -670,7 +744,7 @@ body #foreground #text .lds-roller {
 }
 
 #dataOptions #datasetMenu i {
-  font-size: 15px;
+  font-size: 24px;
 }
 
 #dataOptions #dropdown-menu-datasetMenu {
@@ -1137,15 +1211,22 @@ body #foreground #text .lds-roller {
   }
 }
 
+@media only screen and (min-width: 501px) and (max-width: 767px) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane .row .instr-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .instr-holder {
+    padding-left: 30px;
+  }
+}
+
 #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder {
   width: 0;
   height: 0;
   padding: 0;
   position: absolute;
-  top: 0;
+  top: 5px;
   right: 0;
   overflow: hidden;
   z-index: 13;
+  border-radius: 4px 0 0 4px;
   background-color: white;
   transition: width 0.3s ease;
   -ms-transition: width 0.3s ease;
@@ -1240,7 +1321,7 @@ body #foreground #text .lds-roller {
 }
 
 #methodsNav .col-sm-9 .tab-content .tab-pane .row .log-holder .backBtn::before, #dictNav .col-sm-9 .tab-content .tab-pane .row .log-holder .backBtn::before {
-  content: url("img/back-button.svg");
+  content: url("img/right-arrow.svg");
   width: 34px;
   height: 34px;
   border-radius: 17px;
@@ -1386,10 +1467,32 @@ body #foreground #text .lds-roller {
     border-style: none;
   }
   #methodsNav .col-sm-3 ul.nav-pills.collapsed li.active a::after, #dictNav .col-sm-3 ul.nav-pills.collapsed li.active a::after {
-    content: url("img/hamburger.svg");
+    content: 'menu';
     position: absolute;
-    top: 11px;
-    right: 13px;
+    top: 7px;
+    right: 9px;
+    color: #fff;
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    /* Preferred icon size */
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+    /* Support for IE. */
+    -webkit-font-feature-settings: 'liga';
+            font-feature-settings: 'liga';
   }
   #methodsNav .col-sm-9, #dictNav .col-sm-9 {
     float: right;

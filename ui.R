@@ -18,7 +18,7 @@ shinyUI(navbarPage(
              ),
            class = 'grand-tab-panel'
            ),
-  tabPanel('Dictionary Check',
+  tabPanel('Custom Rules Check',
            uiOutput('actionDictBar'),
            uiOutput('dictNav'),
            class = 'grand-tab-panel'

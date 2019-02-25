@@ -2,7 +2,8 @@ renderLog <- function(chkRes, ...){
   UseMethod('renderLog')
 }
 
-renderLog.checkResult.306 <- function(chkRes, vars = names(chkRes$problem), display = c('values', 'keys', 'indexes'), keys = intelliKey(chkRes)){
+renderLog.checkResult.306 <- function(chkRes, vars = names(chkRes$problem), display = c('values', 'keys', 'indexes'), keys,
+                                      addCol = list(name = NULL, val = NULL)){
   if (is.null(vars)){
     vars <- deparse(substitute(chkRes))
   } 
@@ -53,7 +54,7 @@ renderLog.checkResult.306 <- function(chkRes, vars = names(chkRes$problem), disp
   return(out)
 }
 
-renderLog.checkResult.306.cleanify <- function(chkRes, vars = names(chkRes), tests = getTestList(chkRes), display = c('values', 'keys', 'indexes'), keys = intelliKey(chkRes)){
+renderLog.checkResult.306.cleanify <- function(chkRes, vars = names(chkRes), tests = getTestList(chkRes), display = c('values', 'keys', 'indexes'), keys){
   if (is.null(vars)) vars <- names(chkRes)
   if (is.null(tests)) tests <- getTestList(chkRes)
   display <- match.arg(display)
@@ -70,24 +71,27 @@ renderLog.checkResult.306.cleanify <- function(chkRes, vars = names(chkRes), tes
       tags$tbody(
         lapply(vars,
                function(var){
-                 chkRes.var <- chkRes$var
+                 chkRes.var <- chkRes[[var]]
                  
                  row <- 
                    append(var,
                         lapply(tests,
                                function(test){
-                                 res <- chkRes.var$test
+                                 res <- chkRes.var[[test]]
                                  if (!is.null(res)){
                                    testName <- res$testName
+                                   message <- res$message
                                    problem <- res$problem
                                    problemValues <- res$problemValues
                                    problemIndexes <- res$problemIndexes
                                    if (hasKey) problemKeys <- res$problemKeys
                                    
-                                   res.show <- switch(display,
-                                                      'values' = toString(problemValues),
-                                                      'indexes' = toString(problemIndexes),
-                                                      'keys' = toString(problemKeys))
+                                   if (problem){
+                                     res.show <- switch(display,
+                                                        'values' = toString(problemValues),
+                                                        'indexes' = toString(problemIndexes),
+                                                        'keys' = toString(problemKeys))
+                                   } else res.show <- message
                                  } else res.show <- '-'
                                })
                    )

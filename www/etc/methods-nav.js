@@ -56,13 +56,6 @@ responsiveMethodsNav = () => {
     }
 };
 
-// const responsiveActionBar = () => {
-//     if ($(window).width() <= 500) {
-//         $('#methodsNav .tab-content').prepend($('#each-action-holder'));
-//     } else {
-//         $('#actionBar').prepend($('#each-action-holder'));
-//     }
-// }
 
 $('#methodsNav div.col-sm-4.well')
 .removeClass('col-sm-4')
@@ -80,5 +73,7 @@ $(document).on('dblclick', '.log-holder .chk-logTable td', function() {
     $(this).toggleClass('showAll', 300)
     .next().toggleClass('showAll', 300);
 });
+
+
 
 
