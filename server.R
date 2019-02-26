@@ -43,7 +43,11 @@ shinyServer(function(input, output, session) {
       pickerInput(inputId = "sheetPicker",
                   label = "Sheets list",
                   choices = sheetsList(),
-                  selected = sheetsList()[1])
+                  selected = sheetsList()[1],
+                  options = pickerOptions(
+                    dropdownAlignRight = TRUE,
+                    liveSearch = TRUE,
+                    mobile = FALSE))
   )
   
   ## Load dataset from file and sheet
@@ -107,7 +111,6 @@ shinyServer(function(input, output, session) {
   data.keys <- reactiveVal()
   
   observeEvent(dataset$data.loaded, {
-    req(dataset$data.loaded)
     data.cols(colnames(dataset$data.loaded))
     cols.state(data.cols())
     data.keys(intelliKey(dataset$data.loaded, showAll = TRUE))
@@ -258,7 +261,8 @@ shinyServer(function(input, output, session) {
         actionButton(inputId = 'spl_action', label = 'Spelling Check', width = '130px'),
         class = 'each-action-holder'
       ),
-      class = 'actionBar'
+      class = 'actionBar',
+      'data-for' = '#methodsNav'
     )
   )
   
@@ -269,7 +273,8 @@ shinyServer(function(input, output, session) {
         downloadButton(outputId = 'dictCreate_action', label = 'Save Rules', width = '200px'),
         class = 'each-action-holder'
       ),
-      class = 'actionBar'
+      class = 'actionBar',
+      'data-for' = '#dictNav'
     )
   )
   
@@ -290,7 +295,8 @@ shinyServer(function(input, output, session) {
           tabPanel("Spellings Issues", uiOutput('spl_all')),
           widths = c(3, 9),
           well = FALSE
-        )
+        ),
+        class = 'navMenu'
       )
   )
   
@@ -364,7 +370,8 @@ shinyServer(function(input, output, session) {
         tags$script(src = "etc/dict-nav.js"),
         well = FALSE,
         widths = c(3, 9)
-      )
+      ),
+      class = 'navMenu'
     )
   )
   
@@ -753,7 +760,6 @@ shinyServer(function(input, output, session) {
                                selected = data.cols()[data.cols() %in% names(which(intelliCompatible(isolate(dataset$data.loaded), 'spelling')))], 
                                inline = TRUE, status = "info"),
           fluidRow(
-            column(4),
             column(4,
                    knobInput(
                      inputId = "spl_upLimit",
@@ -770,7 +776,22 @@ shinyServer(function(input, output, session) {
                      fgColor = "#428BCA",
                      inputColor = "#428BCA"
                    )),
-            column(4)
+            column(8,
+                   materialSwitch(
+                     inputId = "spl_spelling", 
+                     label = "Check for spelling issues", 
+                     status = "info",
+                     inline = TRUE,
+                     value = TRUE,
+                     right = TRUE),
+                   materialSwitch(
+                     inputId = "spl_case", 
+                     label = "Check for case issue", 
+                     status = "info",
+                     inline = TRUE,
+                     value = TRUE,
+                     right = TRUE)
+                   )
           ),
           id = 'spl-args-holder'
       )
@@ -858,8 +879,8 @@ shinyServer(function(input, output, session) {
                          value = 1)
   })
   
-  observeEvent(input$keyVariable,{
-    if (!is.null(input$keyVariable))
+  observeEvent(c(input$keyVariable, dataset$data.loaded),{
+    # if (!is.null(input$keyVariable))
       updatePickerInput(session = session, 
                         inputId = 'did_v',
                         choices = data.cols()[data.cols() != input$keyVariable])
@@ -952,8 +973,8 @@ shinyServer(function(input, output, session) {
                                            length(unique(na.blank.omit(data[[i]]))) < 20) 'factor' else 'character',
                                      'numeric' = 
                                        if (length(unique(na.omit(data[[i]]))) <= 2 & 
-                                           all(na.omit(data[[i]]) == floor(na.omit(data[[i]]))) &
-                                           all(na.omit(data[[i]]) <= 10))
+                                           all(as.numeric(na.omit(data[[i]])) == floor(as.numeric(na.omit(data[[i]])))) &
+                                           all(as.numeric(na.omit(data[[i]])) <= 10))
                                          'factor' 
                                        else 'numeric',
                                      'dateTime' = 'dateTime',
@@ -966,8 +987,8 @@ shinyServer(function(input, output, session) {
                                   type = type[i]
                                   
                                   if (type == 'numeric'){
-                                    min = min(na.omit(data[[i]]))
-                                    max = max(na.omit(data[[i]]))
+                                    min = min(as.numeric(na.omit(data[[i]])))
+                                    max = max(as.numeric(na.omit(data[[i]])))
                                     if (isTRUE(min != max)) paste0('[', min, ', ', max, ']')
                                     else min
                                   } 
@@ -982,16 +1003,15 @@ shinyServer(function(input, output, session) {
                                 }, USE.NAMES = FALSE)
       missing <- rep(NA, length(type))
       dataset$defTable <- 
-        cbind(varName = data.cols(), label = "", type = type, 
-              unit = "", values = values, rules = "", missing = missing)
+        cbind(varName = data.cols(), type = type, values = values, rules = "", missing = missing)
       row.names(dataset$defTable) <- NULL
     }
   })
   
   output$defTable <- renderRHandsontable(
     rhandsontable(dataset$defTable, stretchH = "all", search = TRUE) %>%
-      hot_cols(fixedColumnsLeft = 1, colWidths = c('','','','', '100px', '', '')) %>%
-      hot_rows(rowHeights = rep('24px', 7)) %>%
+      hot_cols(fixedColumnsLeft = 1, colWidths = c('','', '120px', '100px', '')) %>%
+      hot_rows(rowHeights = rep('24px', 5)) %>%
       hot_col(col = 'varName', readOnly = TRUE) %>%
       hot_col(col = 'type', type = 'dropdown', source = c('numeric', 'character', 'dateTime', 'factor'), allowInvalid = FALSE) %>%
       hot_col(col = 'values', placeholder = '{a, b, c} or [min, max]') %>%
@@ -1076,13 +1096,16 @@ shinyServer(function(input, output, session) {
   chkRes <- reactiveValues()
   
   testSources <- sapply(testList, function(test) test$source)
+  testAliases <- sapply(testList, function(test) test$alias)
   
   for (source in testSources) source(source, local = TRUE)
   
   observeEvent(input$all_action, {
-    session$sendCustomMessage('all_check', TRUE)
     tryCatch({
-      session$sendCustomMessage('all_check', TRUE)
+      session$sendCustomMessage('all_check', 
+                                lapply(testAliases,
+                                       function(test) if (isTRUE(input[[paste0(test, '_enabled')]])) TRUE else FALSE)
+                                )
   }, error = 
     function(e) {
       # Do something here

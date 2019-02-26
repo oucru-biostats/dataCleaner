@@ -37,12 +37,6 @@ chkRes$lnr_result <-
     )
   ) 
 
-chkRes$lnr_result %...>% 
-  renderLog(chkRes = .,display = input$lnr_display, keys = data.keys()) %...>% 
-  (function (res) {
-    lnr_logTable(res)
-    session$sendCustomMessage('logOn', 'lnr')
-  })
 
 
 

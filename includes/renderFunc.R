@@ -37,7 +37,7 @@ renderLog.checkResult.306 <- function(chkRes, vars = names(chkRes$problem), disp
                  if (problem[[var]])
                    row <- list(var,
                                switch(display,
-                                      'values' = toString(problemValues[[var]]),
+                                      'values' = toString(unique(problemValues[[var]])),
                                       'keys' = toString(problemKeys[[var]]), 
                                       'indexes' = toString(problemIndexes[[var]])
                                )
@@ -88,7 +88,7 @@ renderLog.checkResult.306.cleanify <- function(chkRes, vars = names(chkRes), tes
                                    
                                    if (problem){
                                      res.show <- switch(display,
-                                                        'values' = toString(problemValues),
+                                                        'values' = toString(unique(problemValues)),
                                                         'indexes' = toString(problemIndexes),
                                                         'keys' = toString(problemKeys))
                                    } else res.show <- message

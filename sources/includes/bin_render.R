@@ -10,12 +10,6 @@ chkRes$bin_result <-
     )
   )
 
-chkRes$bin_result %...>%
-  renderLog(chkRes = ., display = i$bin_display, keys = data.keys()) %...>% 
-  (function (res) {
-    bin_logTable(res)
-    session$sendCustomMessage('logOn', 'bin')
-  })
 
 
 

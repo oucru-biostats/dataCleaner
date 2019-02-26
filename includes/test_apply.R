@@ -3,5 +3,5 @@ test_apply <- function(requiredVars, testFunc, ...){
   if (eligible){
     out <- do.call(testFunc, list(...))
     return(out)
-  }
+  } else stop(NULL)
 }

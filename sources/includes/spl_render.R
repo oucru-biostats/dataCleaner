@@ -34,17 +34,13 @@ data <- dataset$data.loaded
 chkRes$spl_result <- 
   future(
     test_apply(c(i$spl_enabled, length(i$spl_subset)),
-               spelling_scan,
+               cleanify,
                data = data, keyVar = i$keyVariable,
-               subset = i$spl_subset
+               checks = c(if (i$spl_case) 'case', if (i$spl_spelling) 'spelling'),
+               options = opt(global(subset(!!i$spl_subset)), spelling(upLimit(!!i$spl_upLimit)))
     )
   ) 
 
-chkRes$spl_result %...>% 
-  renderLog(chkRes = .,display = input$spl_display, keys = data.keys()) %...>% 
-  (function (res) {
-    spl_logTable(res)
-    session$sendCustomMessage('logOn', 'spl')
-  })
+
 
 

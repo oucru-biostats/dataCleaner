@@ -1015,6 +1015,7 @@ case_check <- function(v, v.type = intelliType(v), silent = FALSE, outClass = c(
   problemValues <- NULL
   problemIndexes <- NULL
   message <- list()
+  res <- NULL
   
   #### Check the input for compatibility ####
   is.supported <- intelliIsCompatible(v.type = v.type, test = 'case')

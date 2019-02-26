@@ -100,19 +100,19 @@
 
 @-webkit-keyframes marquee {
   0% {
-    left: 0;
+    left: -50%;
   }
   100% {
-    left: 100%;
+    left: 150%;
   }
 }
 
 @keyframes marquee {
   0% {
-    left: 0;
+    left: -50%;
   }
   100% {
-    left: 100%;
+    left: 150%;
   }
 }
 
@@ -417,8 +417,14 @@ body #foreground #text .lds-roller {
   background: #489948;
   opacity: 0.5;
   border: 3px;
-  -webkit-animation: marquee 0.5s linear infinite;
-          animation: marquee 0.5s linear infinite;
+  -webkit-animation: marquee 1s linear infinite;
+          animation: marquee 1s linear infinite;
+}
+
+.actionBar button.working#all_action::after {
+  left: -40px;
+  -webkit-animation-delay: 0.5s;
+          animation-delay: 0.5s;
 }
 
 #dict-check-args-holder #info_path {
@@ -538,12 +544,12 @@ body #foreground #text .lds-roller {
 
 @media only screen and (min-width: 501px) and (max-width: 767px) {
   #data-input-holder {
-    width: 50%;
+    width: calc(50% - 10px);
     max-width: unset;
     margin: auto;
     display: block;
     top: 8px;
-    right: 20px;
+    right: 34px;
   }
 }
 
@@ -1351,6 +1357,12 @@ body #foreground #text .lds-roller {
   }
 }
 
+@media only screen and (min-width: 501px) and (max-width: 767px) {
+  #methodsNav .col-sm-9 .tab-content .tab-pane, #dictNav .col-sm-9 .tab-content .tab-pane {
+    margin-bottom: 8px;
+  }
+}
+
 #methodsNav .navbar-brand, #dictNav .navbar-brand {
   display: none;
 }
@@ -1376,7 +1388,7 @@ body #foreground #text .lds-roller {
     padding: 0;
   }
   #methodsNav .col-sm-3 ul.nav-pills, #dictNav .col-sm-3 ul.nav-pills {
-    height: var(--contentHeight);
+    height: calc(var(--contentHeight) + 16px);
     width: 100vw;
     background-color: var(--color-background);
     -webkit-box-shadow: 1px 0px -2px var(--color-inactive);
@@ -1430,7 +1442,7 @@ body #foreground #text .lds-roller {
     z-index: 12;
   }
   #methodsNav .col-sm-3 ul.nav-pills, #dictNav .col-sm-3 ul.nav-pills {
-    height: var(--contentHeight);
+    height: calc(var(--contentHeight) + 16px);
     background-color: #fff;
     transition: all 0.3s ease;
     -ms-transition: all 0.3s ease;
@@ -1462,9 +1474,14 @@ body #foreground #text .lds-roller {
     padding-left: 80px;
   }
   #methodsNav .col-sm-3 ul.nav-pills.collapsed, #dictNav .col-sm-3 ul.nav-pills.collapsed {
-    background-color: var(--color-background);
+    background-color: transparent;
     margin-left: -200px;
     border-style: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  #methodsNav .col-sm-3 ul.nav-pills.collapsed li a, #dictNav .col-sm-3 ul.nav-pills.collapsed li a {
+    color: transparent;
   }
   #methodsNav .col-sm-3 ul.nav-pills.collapsed li.active a::after, #dictNav .col-sm-3 ul.nav-pills.collapsed li.active a::after {
     content: 'menu';
@@ -1603,7 +1620,7 @@ body #foreground #text .lds-roller {
 
 @media only screen and (min-width: 501px) and (max-width: 767px) {
   .container-fluid > .tab-content div.grand-tab-panel .row {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
   }
 }
 

@@ -123,13 +123,13 @@ const _DT_initComplete = function() {
 const nav_init = (el, methods) => {
     methods.map((method, idx) => {
         $($(el).find('ul.nav.nav-pills li a')[idx]).data('code', method);
-        $(el).find('ul.nav.nav-pills li a').click(function(){
-            $('.actionBar .btn:not(#all_action)').addClass('hidden');
+        $(document).on('click', ` ${el} ul.nav.nav-pills li a`, function(){
+            $(`.actionBar[data-for = '${el}'] .btn:not(#all_action)`).addClass('hidden');
             $(`.actionBar .btn#${$(this).data('code')}_action`).removeClass('hidden');
         });
     });
 
-    $('.actionBar').find('.btn:not(#all_action)').addClass('hidden');
+    $(`.actionBar[data-for = '${el}']`).find('.btn:not(#all_action)').addClass('hidden');
     $('.actionBar').find(`.btn#${$(el).find('ul.nav.nav-pills li.active a').data('code')}_action`).removeClass('hidden');
 };
 
@@ -172,6 +172,12 @@ const ready_state_init = () => {
     // }
 }
 
+const isTouchDevice = () => {
+    return 'ontouchstart' in document.documentElement;
+
+}
+
+
 /* jquery code run */
 
 $(document).ready(() => {
@@ -180,15 +186,18 @@ $(document).ready(() => {
     $('.navbar-toggle').addClass('hidden');
     set_bar($('#grand-top-bar li.active').position().left, $('#grand-top-bar li.active').position().left + $('#grand-top-bar li.active').outerWidth());
     $('#data-input-holder').prepend($('#header')).addClass('shadowSurge');
+    // $(document).on('click', '#grand-top-bar li a', () => $('.actionBar').find(`.btn#${$('.navMenu').find('ul.nav.nav-pills li.active a').data('code')}_action`).removeClass('hidden'));
 
     $('#grand-top-bar').find('li').hover(function(){
         if ($(this).position().left > barSize.barLeft)
             set_bar(barSize.barLeft, $(this).position().left + $(this).outerWidth());
         else
             set_bar($(this).position().left, barSize.barRight);
-        setTimeout(set_bar, 150, $(this).position().left, $(this).position().left + $(this).outerWidth());
+        setTimeout(set_bar, 200, $(this).position().left, $(this).position().left + $(this).outerWidth());
     }, function(){
-        setTimeout(set_bar, 150, $('#grand-top-bar li.active').position().left, $(`#grand-top-bar li.active`).position().left + $('#grand-top-bar li.active').outerWidth());
+            setTimeout(set_bar, 200, $('#grand-top-bar li.active').position().left, $(`#grand-top-bar li.active`).position().left + $('#grand-top-bar li.active').outerWidth());
+    }).click(function(){
+        set_bar($(this).position().left, $(this).position().left + $(this).outerWidth());
     });
 
     $('#grand-top-bar').find('li a').on('click', function(){
@@ -295,9 +304,9 @@ Shiny.addCustomMessageHandler('haveData', haveData => {
     if (haveData) $('#overlay').fadeOut(1000);
 });
 
-Shiny.addCustomMessageHandler('all_check', nothing => {
-    if (nothing) $('#actionCheckBar div.each-action-holder button').click();
-});
+Shiny.addCustomMessageHandler('all_check', aliases => Object.keys(aliases).map(key => {
+    if (aliases[key]) $(`#actionCheckBar div.each-action-holder button#${key}_action`).click()
+}));
 
 //<div>Icons made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 //<div>Icons made by <a href="https://www.flaticon.com/authors/lucy-g" title="Lucy G">Lucy G</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>

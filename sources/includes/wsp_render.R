@@ -37,11 +37,6 @@ chkRes$wsp_result <-
     )
   ) 
 
-chkRes$wsp_result %...>% 
-  renderLog(chkRes = .,display = input$wsp_display, keys = data.keys()) %...>% 
-  (function (res) {
-    wsp_logTable(res)
-    session$sendCustomMessage('logOn', 'wsp')
-  })
+
 
 

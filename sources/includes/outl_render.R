@@ -40,9 +40,3 @@ chkRes$outl_result <-
     )
   ) 
 
-chkRes$outl_result %...>% 
-  renderLog(chkRes = ., display = input$did_display, keys = data.keys()) %...>% 
-  (function (res) {
-    outl_logTable(res)
-    session$sendCustomMessage('logOn', 'outl')
-  })

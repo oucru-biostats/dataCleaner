@@ -1,7 +1,21 @@
-lnr_logTable <- reactiveVal()
 observeEvent(input$lnr_action, {
   tryCatch({
-    source('sources/includes/lnr_render.R', local = TRUE)
+    i <- get_input_vars(input, 'lnr')
+    keyVar <- input$keyVariable
+    data <- dataset$data.loaded
+    
+    
+    future(
+      test_apply(c(i$lnr_enabled, length(i$lnr_subset)),
+                 loners_scan,
+                 data = data, keyVar = i$keyVariable,
+                 subset = i$lnr_subset, threshold = i$lnr_threshold,
+                 upLimit = i$lnr_upLimit, accept.dateTime = i$lnr_dateAsFactor
+      )
+    ) %>% 
+      then(onFulfilled = function(res) chkRes$lnr_result <- res,
+           onRejected = function() session$sendCustomMessage('logOn', 'lnr')
+    )
   }, error = 
     function(e) {
       print(e)
@@ -9,6 +23,13 @@ observeEvent(input$lnr_action, {
     })
   
   NULL
+})
+
+observeEvent(c(input$lnr_display, input$lnr_action, chkRes$lnr_result),{
+  if(!is.null(chkRes$lnr_result)){
+    output$lnr_logTable <- renderUI(renderLog(chkRes = chkRes$lnr_result, display = input$lnr_display, keys = data.keys()))
+    session$sendCustomMessage('logOn', 'lnr')
+  }
 })
 
 output$lnr_log <- 
@@ -24,6 +45,8 @@ output$lnr_log <-
                     'Real index' = 'indexes',
                     'ID (base on Key)' = 'keys'
                   )),
-      lnr_logTable()
+      uiOutput('lnr_logTable')
     )
   )
+
+

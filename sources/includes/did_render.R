@@ -26,9 +26,5 @@ chkRes$did_result <-
     )
   ) 
 
-chkRes$did_result %...>% 
-  renderLog(chkRes = ., vars = i$did_v, display = input$did_display, keys = data.keys()) %...>% 
-  (function (res) {
-    did_logTable(res)
-    session$sendCustomMessage('logOn', 'did')
-  })
+
+

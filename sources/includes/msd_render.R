@@ -11,11 +11,6 @@ chkRes$msd_result <-
     )
   ) 
 
-chkRes$msd_result %...>% 
-  renderLog(chkRes = .,display = input$msd_display, keys = data.keys()) %...>% 
-  (function (res) {
-    msd_logTable(res)
-    session$sendCustomMessage('logOn', 'msd')
-  })
+
 
 

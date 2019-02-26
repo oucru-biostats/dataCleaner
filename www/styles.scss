@@ -75,11 +75,11 @@
 
 @keyframes marquee{
     0%{
-        left: 0;
+        left: -50%;
     }
 
     100%{
-        left: 100%;
+        left: 150%;
     }
 }
 
@@ -379,7 +379,14 @@ body{
                 background: #489948;
                 opacity: 0.5;
                 border: 3px;
-                animation: marquee 0.5s linear infinite;
+                animation: marquee 1s linear infinite;
+            }
+
+            &#all_action{
+                &::after{
+                    left: -40px;
+                    animation-delay: 0.5s;
+                }
             }
         }
     }
@@ -508,12 +515,12 @@ body{
     }
 
     @media only screen and (min-width: 501px) and (max-width: 767px) {
-        width: 50%;
+        width: calc(50% - 10px);
         max-width: unset;
         margin: auto;
         display:block;
         top: 8px;
-        right:20px;
+        right:34px;
     }
 
     #sheetPicker {
@@ -1323,6 +1330,10 @@ body{
                 @media only screen and (max-width: 500px){
                     height: 60vh;
                 }
+
+                @media only screen and (min-width: 501px) and (max-width: 767px){
+                    margin-bottom: 8px;
+                }
             }
         } 
     }
@@ -1367,7 +1378,7 @@ body{
             margin-right:0;
             padding: 0;
             ul.nav-pills {
-                height: var(--contentHeight);
+                height: calc(var(--contentHeight) + 16px);
                 width: 100vw;
                 background-color: var(--color-background);
                 box-shadow: 1px 0px -2px var(--color-inactive);
@@ -1429,7 +1440,7 @@ body{
             z-index: 12;
 
             ul.nav-pills {
-                height: var(--contentHeight);
+                height: calc(var(--contentHeight) + 16px);
                 background-color: #fff;
                 @supports (backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)){
                     background-color: rgba(255,255,255,0.7);
@@ -1461,11 +1472,16 @@ body{
                 }
 
                 &.collapsed{
-                    background-color: var(--color-background);
+                    background-color: transparent;
                     margin-left: -200px;
                     border-style: none;
+                    backdrop-filter: none;
+                    -webkit-backdrop-filter:none;
         
                     li {
+                        a {
+                            color: transparent;
+                        }
                         &.active a::after{
                             content: 'menu';
                             position: absolute;
@@ -1629,7 +1645,7 @@ body{
                 }
 
                 @media only screen and (min-width: 501px) and (max-width: 767px){
-                    margin-bottom: 20px;
+                    margin-bottom: 30px;
                 }
             }
         }

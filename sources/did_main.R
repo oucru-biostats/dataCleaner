@@ -1,15 +1,36 @@
-did_logTable <- reactiveVal()
 observeEvent(input$did_action, {
   
   tryCatch({
-    source('sources/includes/did_render.R', local = TRUE)
+    i <- get_input_vars(input, 'did')
+    v <- dataset$data.loaded[[i$did_v]]
+    
+    
+    future(
+      test_apply(i$did_enabled,
+                 redundancy_check,
+                 v = v, repNo = i$did_repNo,
+                 upLimit = i$did_upLimit
+      )
+    ) %>% 
+      then(onFulfilled = function(res) chkRes$did_result <- res,
+           onRejected = function() session$sendCustomMessage('logOn', 'did')
+      )
   }, error = 
     function(e) {
       print(e)
       # Do something here
     })
+  
+  NULL
 })
 
+observeEvent(c(input$did_display, input$did_action, chkRes$did_result),{
+  if(!is.null(chkRes$did_result)){
+    output$did_logTable <- renderUI(renderLog(chkRes = chkRes$did_result, vars = input$did_v,
+                                              display = input$did_display, keys = data.keys()))
+    session$sendCustomMessage('logOn', 'did')
+  }
+})
 
 output$did_log <- 
   renderUI(
@@ -23,6 +44,7 @@ output$did_log <-
                     'Value' = 'values',
                     'Real index' = 'indexes'
                   )),
-      did_logTable()
+      uiOutput('did_logTable')
     )
   )
+
