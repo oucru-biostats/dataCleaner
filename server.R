@@ -12,6 +12,7 @@ shinyServer(function(input, output, session) {
   ## Get ext and file path #####
   fileInfo <- reactiveValues()
   ext <- reactiveVal()
+  dataset <- reactiveValues()
   
   observeEvent(input$datasource, {
     fileInfo$ext <- tools::file_ext(input$datasource$datapath)
@@ -21,29 +22,16 @@ shinyServer(function(input, output, session) {
   })
   
   ## Generate sheet picker dialog #####
-  sheetsList <- reactiveVal()
-  
-  observeEvent(input$datasource,{
-    if (isTRUE(fileInfo$ext %in% c('xls', 'xlsx'))) {
-      session$sendCustomMessage("excel", TRUE)
-      sheetsList(excel_sheets(input$datasource$datapath))
-    } else session$sendCustomMessage("excel", FALSE)
-  }) 
-  
   sheet <- reactive({
-    if (is.null(input$sheetPicker)) sheetsList()[1] else input$sheetPicker
-  })
-  
-  observeEvent(input$sheetPicker,{
-    if (isTRUE(input$sheetPicker != dataset$sheet)) session$sendCustomMessage('changeSheet',TRUE)
+    if (is.null(input$sheetPicker)) dataset$sheetsList[1] else input$sheetPicker
   })
   
   output$sheetPicker <- renderUI(
     if (isTRUE(fileInfo$ext %in% c('xls', 'xlsx')))
       pickerInput(inputId = "sheetPicker",
                   label = "Sheets list",
-                  choices = sheetsList(),
-                  selected = sheetsList()[1],
+                  choices = dataset$sheetsList,
+                  selected = dataset$sheetsList[1],
                   options = pickerOptions(
                     dropdownAlignRight = TRUE,
                     liveSearch = TRUE,
@@ -51,22 +39,38 @@ shinyServer(function(input, output, session) {
   )
   
   ## Load dataset from file and sheet
-  read_excel_shiny <- function(datapath){
-    req(input$sheetPicker)
-    if (!is.null(input$sheetPicker) & isTRUE(input$sheetPicker %in% sheetsList()))
-      read_excel(datapath, sheet = sheet())
+  observeEvent(input$datasource, {
+    if (fileInfo$ext == 'csv') dataset$data.tmp <- read.data(req((input$datasource)$datapath), fileInfo)
+    
+    if (isTRUE(fileInfo$ext %in% c('xls', 'xlsx'))) {
+      
+      session$sendCustomMessage("excel", TRUE)
+      dataset$sheetsList <- excel_sheets(input$datasource$datapath)
+      
+    } else session$sendCustomMessage("excel", FALSE)
+  })
+  
+  observeEvent(input$sheetPicker, {
+    session$sendCustomMessage('changeSheet',TRUE)
+    dataset$data.tmp<- read.data(req((input$datasource)$datapath), fileInfo, input$sheetPicker) 
+  })
+  
+  read_excel_shiny <- function(datapath, sheetPicker){
+    req(sheetPicker)
+    if (!is.null(sheetPicker) & isTRUE(sheetPicker %in% dataset$sheetsList))
+      read_excel(datapath, sheet = sheetPicker)
   }
   
-  read.data <- function(datapath, fileInfo){
+  read.data <- function(datapath, fileInfo, sheetPicker){
     out <- switch(fileInfo$ext,
-                  "xls" = read_excel_shiny(datapath),
-                  "xlsx" = read_excel_shiny(datapath),
-                  "csv" = read.csv(datapath, stringsAsFactors = FALSE),
+                  "xls" = read_excel_shiny(datapath, sheetPicker),
+                  "xlsx" = read_excel_shiny(datapath, sheetPicker),
+                  "csv" = read_csv(datapath, na = character(), quoted_NA = FALSE),
                   default = print("Def")
     )
-    if (is.data.frame(out)) {
+    if (is_tibble(out)) {
       if (nrow(out) > 0 && ncol(out) >0) {
-        if (fileInfo$ext %in% c('xls', 'xlsx')) dataset$sheet <- input$sheetPicker
+        if (fileInfo$ext %in% c('xls', 'xlsx')) dataset$sheet <- sheetPicker
         return(out)
       }
       else {
@@ -87,24 +91,17 @@ shinyServer(function(input, output, session) {
     }
   }
   
-  dataset <- reactiveValues()
-  
-  observeEvent(c(input$datasource, input$sheetPicker), {
-    data.loaded <- read.data(req((input$datasource)$datapath), fileInfo) 
-    if (!is.null(data.loaded)) dataset$data.loaded <- data.loaded %>% text_parse
+  observeEvent(dataset$data.tmp, {
+    if (!is.null(dataset$data.tmp)) dataset$data.loaded <- dataset$data.tmp %>% text_parse
   })
   
   observeEvent(c(dataset$data.loaded, dataset$data.result), {
-    dataset$shownData <- if (!isTRUE(isTRUE(input$showOriginal)) & is.data.frame(dataset$data.result)) 
+    dataset$shownData <- if (!isTRUE(isTRUE(input$showOriginal)) & is_tibble(dataset$data.result)) 
       dataset$data.result
     else
       dataset$data.loaded %>%
     cbind("<span style='color:grey; font-style:italic; font-weight:light'>(index)</span>" = 1:nrow(req(dataset$data.loaded)), .)
   })
-  
-  # observe({
-  #   dataset$data.result <- if (is.data.frame(res())) res.dt()
-  # })
   
   data.cols <- reactiveVal()
   cols.state <- reactiveVal()
@@ -141,7 +138,7 @@ shinyServer(function(input, output, session) {
   ## Options menu for data #####
   
   output$dataOptions <- renderUI(
-    if (!is.data.frame(dataset$data.loaded))
+    if (!is_tibble(dataset$data.loaded))
       NULL
     else 
     dropdownButton(
@@ -315,6 +312,7 @@ shinyServer(function(input, output, session) {
         div(
           materialSwitch(inputId = "did_enabled", 
                          status = "success",
+                         value = TRUE,
                          right = TRUE),
           id = 'did-holder',
           class = 'opt-holder'
@@ -865,9 +863,6 @@ shinyServer(function(input, output, session) {
     )
   
   observe({
-    updateMaterialSwitch(session = session,
-                         inputId = 'did_enabled',
-                         value = if (length(input$did_v)) TRUE else FALSE)
     if (!is.integer(input$did_repNo))
       if (!is.null(input$did_repNo)) 
         updateNumericInput(session = session,
@@ -879,13 +874,21 @@ shinyServer(function(input, output, session) {
                          value = 1)
   })
   
+  observeEvent(input$did_v, {
+    if (is_tibble(dataset$data.loaded)){
+      updateNumericInput(session = session,
+                         inputId = 'did_repNo',
+                         value = min(intelliRep(dataset$data.loaded[[input$did_v]])))
+    }
+  })
+  
   observeEvent(c(input$keyVariable, dataset$data.loaded),{
-    # if (!is.null(input$keyVariable))
       updatePickerInput(session = session, 
                         inputId = 'did_v',
                         choices = data.cols()[data.cols() != input$keyVariable])
     
   })
+  
   
   output$did_instr <- renderUI(HTML(instr$spl_instruction))
   output$did_log <- NULL
@@ -949,7 +952,7 @@ shinyServer(function(input, output, session) {
     )
   
   observeEvent(dataset$data.loaded,{
-    if (is.data.frame(dataset$data.loaded)){
+    if (is_tibble(dataset$data.loaded)){
       
       data <- dataset$data.loaded
       dataset$intelliType <- intelliType(data, threshold = 0.8)

@@ -193,9 +193,9 @@ $(document).ready(() => {
             set_bar(barSize.barLeft, $(this).position().left + $(this).outerWidth());
         else
             set_bar($(this).position().left, barSize.barRight);
-        setTimeout(set_bar, 200, $(this).position().left, $(this).position().left + $(this).outerWidth());
+        setTimeout(set_bar, 150, $(this).position().left, $(this).position().left + $(this).outerWidth());
     }, function(){
-            setTimeout(set_bar, 200, $('#grand-top-bar li.active').position().left, $(`#grand-top-bar li.active`).position().left + $('#grand-top-bar li.active').outerWidth());
+            setTimeout(set_bar, 150, $('#grand-top-bar li.active').position().left, $(`#grand-top-bar li.active`).position().left + $('#grand-top-bar li.active').outerWidth());
     }).click(function(){
         set_bar($(this).position().left, $(this).position().left + $(this).outerWidth());
     });
